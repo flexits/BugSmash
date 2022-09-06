@@ -10,6 +10,7 @@ import android.view.View;
 
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
+import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
@@ -17,6 +18,8 @@ import com.flexits.bugsmash.databinding.ActivityMainBinding;
 
 import android.view.Menu;
 import android.view.MenuItem;
+
+import android.content.Intent;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -62,7 +65,11 @@ public class MainActivity extends AppCompatActivity {
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
+        } else if (id == R.id.action_about){
+            showAbout();
+            return true;
         }
+
 
         return super.onOptionsItemSelected(item);
     }
@@ -73,4 +80,13 @@ public class MainActivity extends AppCompatActivity {
         return NavigationUI.navigateUp(navController, appBarConfiguration)
                 || super.onSupportNavigateUp();
     }
+
+    private void showAbout(){
+        //Snackbar.make(getWindow().getDecorView().findViewById(R.id.nav_host_fragment_content_main), "About", Snackbar.LENGTH_LONG).show();
+        Snackbar.make(binding.getRoot(), "About clicked", Snackbar.LENGTH_LONG).show();
+
+        Navigation.findNavController(this, R.id.nav_host_fragment_content_main)
+                .navigate(R.id.action_global_aboutFragment);
+    }
+
 }
