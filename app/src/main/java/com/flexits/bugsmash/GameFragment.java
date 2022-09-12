@@ -18,7 +18,7 @@ public class GameFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container,
                              Bundle savedInstanceState) {
-        return new GameView(getActivity());
+        return new GameView(getActivity(), null);
     }
 
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {

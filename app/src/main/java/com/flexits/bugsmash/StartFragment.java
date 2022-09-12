@@ -40,7 +40,14 @@ public class StartFragment extends Fragment {
     }
 
     public void btnPlayPress(View view){
-        startActivity(new Intent(view.getContext(), GameActivity.class));
+        Intent gameIntent = new Intent(view.getContext(), GameActivity.class);
+        StartFragment.this.startActivity(gameIntent);
+        //gameIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        //gameIntent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+        //startActivity(gameIntent);
+        //startActivityIfNeeded(gameIntent, 0);
+        startActivityForResult(gameIntent, 0);
+        //TODO pass gameView and gameLoopThread into the activity
     }
 
 }
