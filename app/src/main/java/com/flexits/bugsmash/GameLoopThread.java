@@ -4,15 +4,12 @@ import android.graphics.Canvas;
 
 //all calculations of the game world are made here and saved into the LiveData object
 public class GameLoopThread extends Thread implements Runnable{
-
-    private final GameViewModel gameViewModel;
     private final GameGlobal gameGlobal;
     private final GameView gameView;
     private boolean isRunning = false;
 
-    public GameLoopThread(GameView gameView, GameViewModel gameViewModel) {
+    public GameLoopThread(GameView gameView) {
         this.gameView = gameView;
-        this.gameViewModel = gameViewModel;
         gameGlobal = (GameGlobal) gameView.getContext().getApplicationContext();
     }
 
@@ -21,12 +18,9 @@ public class GameLoopThread extends Thread implements Runnable{
         this.isRunning = isRunning;
     }
 
-    public boolean getRunning() { return isRunning; }
-
     @Override
     public void run() {
         while (isRunning) {
-            //for(Mob m : gameViewModel.getMobs().getValue()){
             for(Mob m : gameGlobal.getMobs()){
                 if (!m.isAlive()) continue;
                 int x = m.getX_coord();
@@ -36,7 +30,6 @@ public class GameLoopThread extends Thread implements Runnable{
                 //else x = 0;
                 m.setX_coord(x);
             }
-            //gameViewModel.getIsUpdated().postValue(Boolean.TRUE);
 
             Canvas canvas = null;
             try {
@@ -51,7 +44,6 @@ public class GameLoopThread extends Thread implements Runnable{
                 if (canvas != null) {
                     gameView.getHolder().unlockCanvasAndPost(canvas);
                 }
-                //gameViewModel.getIsUpdated().setValue(Boolean.FALSE);
             }
 
             try {

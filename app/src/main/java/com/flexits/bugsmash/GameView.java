@@ -8,13 +8,11 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 public class GameView extends SurfaceView {
-    private final GameViewModel gameViewModel;
     private final GameGlobal gameGlobal;
 
-    public GameView(Context context, GameViewModel gameViewModel) {
+    public GameView(Context context) {
         super(context);
         gameGlobal = (GameGlobal) context.getApplicationContext();
-        this.gameViewModel = gameViewModel;
         /*SurfaceHolder holder = getHolder();
         holder.addCallback(new SurfaceHolder.Callback() {
             @Override
@@ -33,11 +31,6 @@ public class GameView extends SurfaceView {
     public void draw(Canvas canvas) {
         super.draw(canvas);
         canvas.drawColor(Color.YELLOW);
-
-        /*for(Mob m : gameViewModel.getMobs().getValue()){
-            if (!m.isAlive()) continue;
-            canvas.drawBitmap(m.getSpecies().getBmp(), m.getX_coord(),m.getY_coord(),null);
-        }*/
 
         for(Mob m : gameGlobal.getMobs()){
             if (!m.isAlive()) continue;
