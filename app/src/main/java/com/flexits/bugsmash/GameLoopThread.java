@@ -2,10 +2,18 @@ package com.flexits.bugsmash;
 
 import android.graphics.Canvas;
 
+import java.util.ArrayList;
+
 //all calculations of the game world are made here and saved into the LiveData object
 public class GameLoopThread extends Thread implements Runnable{
+<<<<<<< HEAD
     private final GameGlobal gameGlobal;
+=======
+
+    private final GameViewModel gameViewModel;
+>>>>>>> temp
     private final GameView gameView;
+    private final GameGlobal gameGlobal;
     private boolean isRunning = false;
 
     public GameLoopThread(GameView gameView) {
@@ -21,7 +29,11 @@ public class GameLoopThread extends Thread implements Runnable{
     @Override
     public void run() {
         while (isRunning) {
+<<<<<<< HEAD
             for(Mob m : gameGlobal.getMobs()){
+=======
+            for(Mob m : gameViewModel.getMobs().getValue()){
+>>>>>>> temp
                 if (!m.isAlive()) continue;
                 int x = m.getX_coord();
                 int x_scr = gameView.getWidth();
@@ -30,6 +42,7 @@ public class GameLoopThread extends Thread implements Runnable{
                 //else x = 0;
                 m.setX_coord(x);
             }
+<<<<<<< HEAD
 
             Canvas canvas = null;
             try {
@@ -45,12 +58,16 @@ public class GameLoopThread extends Thread implements Runnable{
                     gameView.getHolder().unlockCanvasAndPost(canvas);
                 }
             }
+=======
+>>>>>>> temp
 
             try {
                 Thread.sleep(1);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+
+            gameViewModel.getIsUpdated().postValue(Boolean.TRUE);
             //TODO control FPS
         }
     }

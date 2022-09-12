@@ -43,6 +43,7 @@ public class StartFragment extends Fragment {
     }
 
     public void btnPlayPress(View view){
+<<<<<<< HEAD
 
         //populate the list of entities
         MobSpecies ms1 = new MobSpecies(BitmapFactory.decodeResource(getResources(), R.drawable.spider_40px));
@@ -58,6 +59,14 @@ public class StartFragment extends Fragment {
         startActivity(gameIntent);
         //startActivityIfNeeded(gameIntent, 0);
         //startActivityForResult(gameIntent, 0);
+=======
+        Intent gameIntent = new Intent(binding.getRoot().getContext().getApplicationContext(), GameActivity.class);
+        //gameIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        gameIntent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+        startActivity(gameIntent);
+        //startActivityForResult(gameIntent, 0);
+        //TODO pass gameView and gameLoopThread into the activity
+>>>>>>> temp
     }
 
 }
