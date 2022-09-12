@@ -9,12 +9,14 @@ import androidx.lifecycle.ViewModelProvider;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.os.Bundle;
+import android.view.SurfaceHolder;
 import android.view.View;
 
 import java.util.ArrayList;
 
 public class GameActivity extends AppCompatActivity {
     private GameView gameView;
+    private GameGlobal gameGlobal;
     private GameViewModel gameViewModel;
     private GameLoopThread gameLoopThread;
 
@@ -31,12 +33,16 @@ public class GameActivity extends AppCompatActivity {
 
         //create LiveData model and populate the list of entities
         gameViewModel = new ViewModelProvider(this).get(GameViewModel.class);
-        MobSpecies ms1 = new MobSpecies(BitmapFactory.decodeResource(getResources(), R.drawable.spider_40px));
-        Mob mb1 = new Mob(1, 10, 0, true, ms1);
-        //gameViewModel.getMobs().getValue().add(mb1);
+        gameGlobal = (GameGlobal) getApplication();
+        ArrayList<Mob> mobs = gameGlobal.getMobs();
 
-        GameGlobal gameGlobal = (GameGlobal) getApplicationContext();
-        gameGlobal.getMobs().add(mb1);
+        if (mobs.size() <= 0) {
+            MobSpecies ms1 = new MobSpecies(BitmapFactory.decodeResource(getResources(), R.drawable.spider_40px));
+            Mob mb1 = new Mob(1, 10, 0, true, ms1);
+            gameViewModel.getMobs().getValue().add(mb1);
+        } else{
+            gameViewModel.getMobs().setValue(mobs);
+        }
 
         //create gameview
         gameView = new GameView(this, gameViewModel);
@@ -45,51 +51,77 @@ public class GameActivity extends AppCompatActivity {
         //create background worker thread
         gameLoopThread = new GameLoopThread(gameView, gameViewModel);
 
-
         //get LiveData provider to observe changes
         final Observer<Boolean> observer = new Observer<Boolean>() {
             @Override
             public void onChanged(Boolean flag) {
                 if (!Boolean.TRUE.equals(flag)) return;
-                Canvas canvas = null;
-                try {
-                    //try to lock the resource to avoid conflicts
-                    canvas = gameView.getHolder().lockCanvas();
-                    synchronized (gameView.getHolder()) {
-                        //update the screen upon lock acquisition
-                        if ((canvas != null) && gameLoopThread.getRunning()) gameView.draw(canvas);
-                    }
-                } finally {
-                    //unlock the resource if locked
-                    if (canvas != null) {
-                        gameView.getHolder().unlockCanvasAndPost(canvas);
-                    }
+                performDraw();
+            }
+        };
+        gameViewModel.getIsUpdated().observe(this, observer);
+    }
+
+    private void performDraw() {
+        Canvas canvas = null;
+        SurfaceHolder sfhold = gameView.getHolder();
+        if (!sfhold.getSurface().isValid()) return;
+        try {
+            //try to lock the resource to avoid conflicts
+            canvas = sfhold.lockCanvas();
+            synchronized (sfhold) {
+                //update the screen upon lock acquisition
+                if (canvas != null) {
+                    gameView.draw(canvas);
                     gameViewModel.getIsUpdated().setValue(Boolean.FALSE);
                 }
             }
-        };
-        //gameViewModel.getIsUpdated().observe(this, observer);
+        } finally {
+            //unlock the resource if locked
+            if (canvas != null) {
+                sfhold.unlockCanvasAndPost(canvas);
+            }
+        }
     }
 
+
     @Override
-    protected void onStart() {
-        super.onStart();
-        gameLoopThread.setState(true);
-        Thread.State state = gameLoopThread.getState();
-        if (!gameLoopThread.isAlive()) gameLoopThread.start();
+    protected void onResume() {
+        super.onResume();
+        performDraw();
+        try {
+            gameLoopThread.setState(true);
+            Thread.State state = gameLoopThread.getState();
+            if (state == Thread.State.NEW) gameLoopThread.start();
+            //if (!gameLoopThread.isAlive()) gameLoopThread.start();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        gameLoopThread.setState(false);
+        try{
+            gameLoopThread.setState(false);
+            gameLoopThread.interrupt();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        //remember current entities
+        gameGlobal.setMobs(new ArrayList<>(gameViewModel.getMobs().getValue()));
+
         //TODO what is the meaning of this:
         boolean retry = true;
         while (retry) {
             try {
                 gameLoopThread.join();
                 retry = false;
-            } catch (InterruptedException e) { e.printStackTrace(); }
+            } catch (InterruptedException e) {
+                e.printStackTrace(); }
         }
     }
 

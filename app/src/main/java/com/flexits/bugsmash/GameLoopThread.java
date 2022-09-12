@@ -2,12 +2,14 @@ package com.flexits.bugsmash;
 
 import android.graphics.Canvas;
 
+import java.util.ArrayList;
+
 //all calculations of the game world are made here and saved into the LiveData object
 public class GameLoopThread extends Thread implements Runnable{
 
     private final GameViewModel gameViewModel;
-    private final GameGlobal gameGlobal;
     private final GameView gameView;
+    private final GameGlobal gameGlobal;
     private boolean isRunning = false;
 
     public GameLoopThread(GameView gameView, GameViewModel gameViewModel) {
@@ -26,8 +28,7 @@ public class GameLoopThread extends Thread implements Runnable{
     @Override
     public void run() {
         while (isRunning) {
-            //for(Mob m : gameViewModel.getMobs().getValue()){
-            for(Mob m : gameGlobal.getMobs()){
+            for(Mob m : gameViewModel.getMobs().getValue()){
                 if (!m.isAlive()) continue;
                 int x = m.getX_coord();
                 int x_scr = gameView.getWidth();
@@ -36,29 +37,14 @@ public class GameLoopThread extends Thread implements Runnable{
                 //else x = 0;
                 m.setX_coord(x);
             }
-            //gameViewModel.getIsUpdated().postValue(Boolean.TRUE);
-
-            Canvas canvas = null;
-            try {
-                //try to lock the resource to avoid conflicts
-                canvas = gameView.getHolder().lockCanvas();
-                synchronized (gameView.getHolder()) {
-                    //update the screen upon lock acquisition
-                    if ((canvas != null) && isRunning) gameView.draw(canvas);
-                }
-            } finally {
-                //unlock the resource if locked
-                if (canvas != null) {
-                    gameView.getHolder().unlockCanvasAndPost(canvas);
-                }
-                //gameViewModel.getIsUpdated().setValue(Boolean.FALSE);
-            }
 
             try {
                 Thread.sleep(1);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+
+            gameViewModel.getIsUpdated().postValue(Boolean.TRUE);
             //TODO control FPS
         }
     }
