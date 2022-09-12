@@ -1,7 +1,6 @@
 package com.flexits.bugsmash;
 
 import android.content.Intent;
-import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,8 +11,6 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.flexits.bugsmash.databinding.FragmentFirstBinding;
-
-import java.util.ArrayList;
 
 public class StartFragment extends Fragment {
 
@@ -43,30 +40,12 @@ public class StartFragment extends Fragment {
     }
 
     public void btnPlayPress(View view){
-<<<<<<< HEAD
-
-        //populate the list of entities
-        MobSpecies ms1 = new MobSpecies(BitmapFactory.decodeResource(getResources(), R.drawable.spider_40px));
-        Mob mb1 = new Mob(1, 10, 0, true, ms1);
-        GameGlobal gameGlobal = (GameGlobal) this.binding.getRoot().getContext().getApplicationContext();
-        ArrayList<Mob> mobs = gameGlobal.getMobs();
-        if (mobs.size() <= 0) gameGlobal.getMobs().add(mb1);
-
-        Intent gameIntent = new Intent(view.getContext(), GameActivity.class);
-        //StartFragment.this.startActivity(gameIntent);
-        //gameIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        //gameIntent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-        startActivity(gameIntent);
-        //startActivityIfNeeded(gameIntent, 0);
-        //startActivityForResult(gameIntent, 0);
-=======
         Intent gameIntent = new Intent(binding.getRoot().getContext().getApplicationContext(), GameActivity.class);
         //gameIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         gameIntent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         startActivity(gameIntent);
         //startActivityForResult(gameIntent, 0);
         //TODO pass gameView and gameLoopThread into the activity
->>>>>>> temp
     }
 
 }

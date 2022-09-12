@@ -6,18 +6,15 @@ import java.util.ArrayList;
 
 //all calculations of the game world are made here and saved into the LiveData object
 public class GameLoopThread extends Thread implements Runnable{
-<<<<<<< HEAD
-    private final GameGlobal gameGlobal;
-=======
 
     private final GameViewModel gameViewModel;
->>>>>>> temp
     private final GameView gameView;
     private final GameGlobal gameGlobal;
     private boolean isRunning = false;
 
-    public GameLoopThread(GameView gameView) {
+    public GameLoopThread(GameView gameView, GameViewModel gameViewModel) {
         this.gameView = gameView;
+        this.gameViewModel = gameViewModel;
         gameGlobal = (GameGlobal) gameView.getContext().getApplicationContext();
     }
 
@@ -26,14 +23,12 @@ public class GameLoopThread extends Thread implements Runnable{
         this.isRunning = isRunning;
     }
 
+    public boolean getRunning() { return isRunning; }
+
     @Override
     public void run() {
         while (isRunning) {
-<<<<<<< HEAD
-            for(Mob m : gameGlobal.getMobs()){
-=======
             for(Mob m : gameViewModel.getMobs().getValue()){
->>>>>>> temp
                 if (!m.isAlive()) continue;
                 int x = m.getX_coord();
                 int x_scr = gameView.getWidth();
@@ -42,24 +37,6 @@ public class GameLoopThread extends Thread implements Runnable{
                 //else x = 0;
                 m.setX_coord(x);
             }
-<<<<<<< HEAD
-
-            Canvas canvas = null;
-            try {
-                //try to lock the resource to avoid conflicts
-                canvas = gameView.getHolder().lockCanvas();
-                synchronized (gameView.getHolder()) {
-                    //update the screen upon lock acquisition
-                    if ((canvas != null) && isRunning) gameView.draw(canvas);
-                }
-            } finally {
-                //unlock the resource if locked
-                if (canvas != null) {
-                    gameView.getHolder().unlockCanvasAndPost(canvas);
-                }
-            }
-=======
->>>>>>> temp
 
             try {
                 Thread.sleep(1);

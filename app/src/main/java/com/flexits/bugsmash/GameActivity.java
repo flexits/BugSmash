@@ -3,18 +3,21 @@ package com.flexits.bugsmash;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.WindowCompat;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
+
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.os.Bundle;
 import android.view.SurfaceHolder;
 import android.view.View;
 
+import java.util.ArrayList;
+
 public class GameActivity extends AppCompatActivity {
     private GameView gameView;
-<<<<<<< HEAD
-=======
     private GameGlobal gameGlobal;
     private GameViewModel gameViewModel;
->>>>>>> temp
     private GameLoopThread gameLoopThread;
 
     @Override
@@ -28,8 +31,6 @@ public class GameActivity extends AppCompatActivity {
         //display content edge-to-edge
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
 
-<<<<<<< HEAD
-=======
         //create LiveData model and populate the list of entities
         gameViewModel = new ViewModelProvider(this).get(GameViewModel.class);
         gameGlobal = (GameGlobal) getApplication();
@@ -43,16 +44,13 @@ public class GameActivity extends AppCompatActivity {
             gameViewModel.getMobs().setValue(mobs);
         }
 
->>>>>>> temp
         //create gameview
-        gameView = new GameView(this);
+        gameView = new GameView(this, gameViewModel);
         setContentView(gameView);
 
         //create background worker thread
-        gameLoopThread = new GameLoopThread(gameView);
+        gameLoopThread = new GameLoopThread(gameView, gameViewModel);
 
-<<<<<<< HEAD
-=======
         //get LiveData provider to observe changes
         final Observer<Boolean> observer = new Observer<Boolean>() {
             @Override
@@ -84,7 +82,6 @@ public class GameActivity extends AppCompatActivity {
                 sfhold.unlockCanvasAndPost(canvas);
             }
         }
->>>>>>> temp
     }
 
 
