@@ -7,9 +7,7 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
 import android.os.Bundle;
-import android.view.SurfaceHolder;
 import android.view.View;
 
 import java.util.ArrayList;
@@ -23,6 +21,7 @@ public class GameActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         //hide the status bar
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
@@ -56,44 +55,25 @@ public class GameActivity extends AppCompatActivity {
             @Override
             public void onChanged(Boolean flag) {
                 if (!Boolean.TRUE.equals(flag)) return;
-                performDraw();
+                gameView.performDraw();
+                gameViewModel.getIsUpdated().setValue(Boolean.FALSE);
             }
         };
         gameViewModel.getIsUpdated().observe(this, observer);
-    }
-
-    private void performDraw() {
-        Canvas canvas = null;
-        SurfaceHolder sfhold = gameView.getHolder();
-        if (!sfhold.getSurface().isValid()) return;
-        try {
-            //try to lock the resource to avoid conflicts
-            canvas = sfhold.lockCanvas();
-            synchronized (sfhold) {
-                //update the screen upon lock acquisition
-                if (canvas != null) {
-                    gameView.draw(canvas);
-                    gameViewModel.getIsUpdated().setValue(Boolean.FALSE);
-                }
-            }
-        } finally {
-            //unlock the resource if locked
-            if (canvas != null) {
-                sfhold.unlockCanvasAndPost(canvas);
-            }
-        }
     }
 
 
     @Override
     protected void onResume() {
         super.onResume();
-        performDraw();
         try {
-            gameLoopThread.setState(true);
-            Thread.State state = gameLoopThread.getState();
-            if (state == Thread.State.NEW) gameLoopThread.start();
-            //if (!gameLoopThread.isAlive()) gameLoopThread.start();
+            if (gameLoopThread.getState() == Thread.State.TERMINATED) {
+                gameLoopThread = new GameLoopThread(gameView, gameViewModel);
+            }
+            gameLoopThread.allowExecution(true);
+            if (gameLoopThread.getState() == Thread.State.NEW) {
+                gameLoopThread.start();
+            }
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -104,7 +84,7 @@ public class GameActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         try{
-            gameLoopThread.setState(false);
+            gameLoopThread.allowExecution(false);
             gameLoopThread.interrupt();
         }
         catch (Exception e) {
@@ -115,14 +95,14 @@ public class GameActivity extends AppCompatActivity {
         gameGlobal.setMobs(new ArrayList<>(gameViewModel.getMobs().getValue()));
 
         //TODO what is the meaning of this:
-        boolean retry = true;
+        /*boolean retry = true;
         while (retry) {
             try {
                 gameLoopThread.join();
                 retry = false;
             } catch (InterruptedException e) {
                 e.printStackTrace(); }
-        }
+        }*/
     }
 
     @Override

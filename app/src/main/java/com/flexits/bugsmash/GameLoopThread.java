@@ -19,8 +19,8 @@ public class GameLoopThread extends Thread implements Runnable{
     }
 
     //set flat to start or stop the thread
-    public void setState(boolean isRunning) {
-        this.isRunning = isRunning;
+    public void allowExecution(boolean isAllowed) {
+        this.isRunning = isAllowed;
     }
 
     public boolean getRunning() { return isRunning; }
@@ -34,7 +34,7 @@ public class GameLoopThread extends Thread implements Runnable{
                 int x_scr = gameView.getWidth();
                 int bmp_width = m.getSpecies().getBmp().getWidth();
                 if (x < (x_scr - bmp_width)) x++;
-                //else x = 0;
+                else x = 0;
                 m.setX_coord(x);
             }
 
