@@ -54,7 +54,6 @@ public class GameView extends SurfaceView {
                 //update the screen upon lock acquisition
                 if (canvas != null) {
                     this.draw(canvas);
-                    //gameViewModel.getIsUpdated().setValue(Boolean.FALSE);
                 }
             }
         } finally {

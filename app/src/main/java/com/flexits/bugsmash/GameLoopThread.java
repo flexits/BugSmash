@@ -23,8 +23,6 @@ public class GameLoopThread extends Thread implements Runnable{
         this.isRunning = isAllowed;
     }
 
-    public boolean getRunning() { return isRunning; }
-
     @Override
     public void run() {
         while (isRunning) {
