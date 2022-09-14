@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import android.graphics.BitmapFactory;
 import android.graphics.Point;
+import android.graphics.PointF;
 import android.os.Bundle;
 import android.view.View;
 
@@ -63,21 +64,9 @@ public class GameActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         //create background worker thread
-        gameLoopThread = new GameLoopThread(gameView, gameViewModel);
+        gameLoopThread = new GameLoopThread(gameViewModel);
         gameLoopThread.allowExecution(true);
         gameLoopThread.start();
-        /*try {
-            if (gameLoopThread.getState() == Thread.State.TERMINATED) {
-                gameLoopThread = new GameLoopThread(gameView, gameViewModel);
-            }
-            gameLoopThread.allowExecution(true);
-            if (gameLoopThread.getState() == Thread.State.NEW) {
-                gameLoopThread.start();
-            }
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }*/
     }
 
     @Override
@@ -168,29 +157,34 @@ public class GameActivity extends AppCompatActivity {
                     //left side
                     x = 0;
                     y = generateRnd(0,y_max);
-                    angleDeg = 0;
+                    angleDeg = 360;
                     break;
             }
             //ensure the objects don't overlap
-            boolean isOverlapping = false;
+            /*boolean isOverlapping = false;
             int x_end = x + ms.getBmp().getWidth();
             int y_end = y + ms.getBmp().getHeight();
             for (Mob m : mobs){
                 isOverlapping = false;
-                int mob_x_start = m.getCoord().x;
+                int mob_x_start = (int)m.getCoord().x;
                 int mob_x_end = mob_x_start + m.getSpecies().getBmp().getWidth();
                 if (x > mob_x_end || x_end < mob_x_start) continue;
-                int mob_y_start = m.getCoord().y;
+                int mob_y_start = (int)m.getCoord().y;
                 int mob_y_end = mob_y_start + m.getSpecies().getBmp().getHeight();
                 if (y > mob_y_end || y_end < mob_y_start) continue;
                 isOverlapping = true;
                 break;
-            }
-            if (isOverlapping){
+            }*/
+            if (isOverlapping
+                    (mobs,
+                    new Point(x , y),
+                    new Point(ms.getBmp().getWidth(), ms.getBmp().getHeight()))
+            ){
                 i--;
                 continue;
             }
-            //TODO deflect vector +- 45 degrees
+            //deflect movement vector +- 45 degrees
+            angleDeg += (generateRnd(0, 90) - 45);
             mobs.add(new Mob(x, y, angleDeg,true, ms));
         }
 
@@ -200,5 +194,24 @@ public class GameActivity extends AppCompatActivity {
         if (min>=max) throw new IllegalArgumentException();
         if (min+1 == max) return min;
         return min + (int)(Math.random() * ((max - min) + 1));
+    }
+
+    private boolean isOverlapping(ArrayList<Mob> mobs, Point coordinates, Point dimensions){
+        int x = coordinates.x;
+        int y = coordinates.y;
+        int x_end = x + dimensions.x;
+        int y_end = y + dimensions.y;
+        boolean result = false;
+        for (Mob m : mobs){
+            int mob_x_start = (int)m.getCoord().x;
+            int mob_x_end = mob_x_start + m.getSpecies().getBmp().getWidth();
+            if (x > mob_x_end || x_end < mob_x_start) continue;
+            int mob_y_start = (int)m.getCoord().y;
+            int mob_y_end = mob_y_start + m.getSpecies().getBmp().getHeight();
+            if (y > mob_y_end || y_end < mob_y_start) continue;
+            result = true;
+            break;
+        }
+        return result;
     }
 }
