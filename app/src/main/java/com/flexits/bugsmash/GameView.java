@@ -95,7 +95,7 @@ class DrawThread extends Thread{
         if (mobs == null) return;
         for(Mob m : mobs.getValue()){
             if (!m.isAlive()) continue;
-            canvas.drawBitmap(m.getSpecies().getBmp(), m.getX_coord(),m.getY_coord(),null);
+            canvas.drawBitmap(m.getSpecies().getBmp(), m.getCoord().x, m.getCoord().y,null);
         }
     }
 }

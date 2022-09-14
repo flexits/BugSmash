@@ -138,32 +138,37 @@ public class GameActivity extends AppCompatActivity {
         for (int i=0; i<MOBS_QUANTITY; i++){
             //pick random species
             MobSpecies ms = species.get(generateRnd(0,species.size()));
-            //pick random screen side
+            //pick random screen side to spawn a mob on
             int sideIndex = generateRnd(0,4);
-            //generate coordinates
+            //generate coordinates and movement vectors' angles
+            //(a mob never goes back; a movement vector is normal to the side a mob is spawned on)
             int x_max = viewSize.x - ms.getBmp().getWidth();
             int y_max = viewSize.y - ms.getBmp().getHeight();
-            int x=0, y=0;
+            int x=0, y=0, angleDeg = 0;
             switch (sideIndex){
                 case 1:
                     //upper side
                     y = 0;
                     x = generateRnd(0,x_max);
+                    angleDeg = 270;
                     break;
                 case 2:
                     //right side
                     x = x_max;
                     y = generateRnd(0,y_max);
+                    angleDeg = 180;
                     break;
                 case 3:
                     //bottom side
                     y = y_max;
                     x = generateRnd(0,x_max);
+                    angleDeg = 90;
                     break;
                 case 4:
                     //left side
                     x = 0;
                     y = generateRnd(0,y_max);
+                    angleDeg = 0;
                     break;
             }
             //ensure the objects don't overlap
@@ -172,10 +177,10 @@ public class GameActivity extends AppCompatActivity {
             int y_end = y + ms.getBmp().getHeight();
             for (Mob m : mobs){
                 isOverlapping = false;
-                int mob_x_start = m.getX_coord();
+                int mob_x_start = m.getCoord().x;
                 int mob_x_end = mob_x_start + m.getSpecies().getBmp().getWidth();
                 if (x > mob_x_end || x_end < mob_x_start) continue;
-                int mob_y_start = m.getY_coord();
+                int mob_y_start = m.getCoord().y;
                 int mob_y_end = mob_y_start + m.getSpecies().getBmp().getHeight();
                 if (y > mob_y_end || y_end < mob_y_start) continue;
                 isOverlapping = true;
@@ -185,7 +190,8 @@ public class GameActivity extends AppCompatActivity {
                 i--;
                 continue;
             }
-            mobs.add(new Mob(x, y, 0,true, ms));
+            //TODO deflect vector +- 45 degrees
+            mobs.add(new Mob(x, y, angleDeg,true, ms));
         }
 
     }
