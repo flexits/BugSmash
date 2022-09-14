@@ -76,6 +76,7 @@ class DrawThread extends Thread{
                 synchronized (holder) {
                     //update the screen upon lock acquisition
                     if (canvas != null) {
+                        //draw the game objects
                         performDraw(canvas);
                     }
                 }

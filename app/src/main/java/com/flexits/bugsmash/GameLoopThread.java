@@ -1,25 +1,19 @@
 package com.flexits.bugsmash;
 
-import android.graphics.Canvas;
-
-import java.util.ArrayList;
-
 //all calculations of the game world are made here and saved into the LiveData object
 public class GameLoopThread extends Thread implements Runnable{
 
     private final GameViewModel gameViewModel;
     private final GameView gameView;
-    private final GameGlobal gameGlobal;
 
     private boolean isRunning = false;
 
     public GameLoopThread(GameView gameView, GameViewModel gameViewModel) {
         this.gameView = gameView;
         this.gameViewModel = gameViewModel;
-        gameGlobal = (GameGlobal) gameView.getContext().getApplicationContext();
     }
 
-    //set flat to start or stop the thread
+    //set flag to start or stop the thread
     public void allowExecution(boolean isAllowed) {
         this.isRunning = isAllowed;
     }
@@ -34,7 +28,7 @@ public class GameLoopThread extends Thread implements Runnable{
                 int bmp_width = m.getSpecies().getBmp().getWidth();
                 if (x < (x_scr - bmp_width)) x++;
                 else x = 0;
-                m.setX_coord(x);
+                //m.setX_coord(x);
             }
 
             try {
