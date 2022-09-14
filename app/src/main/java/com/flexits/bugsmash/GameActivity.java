@@ -47,15 +47,12 @@ public class GameActivity extends AppCompatActivity {
         gameView = new GameView(this, gameViewModel);
         setContentView(gameView);
 
-        //create background worker thread
-        gameLoopThread = new GameLoopThread(gameView, gameViewModel);
-
         //get LiveData provider to observe changes
         final Observer<Boolean> observer = new Observer<Boolean>() {
             @Override
             public void onChanged(Boolean flag) {
                 if (!Boolean.TRUE.equals(flag)) return;
-                gameView.performDraw();
+                gameView.invalidate();
                 gameViewModel.getIsUpdated().setValue(Boolean.FALSE);
             }
         };
@@ -66,7 +63,11 @@ public class GameActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        try {
+        //create background worker thread
+        gameLoopThread = new GameLoopThread(gameView, gameViewModel);
+        gameLoopThread.allowExecution(true);
+        gameLoopThread.start();
+        /*try {
             if (gameLoopThread.getState() == Thread.State.TERMINATED) {
                 gameLoopThread = new GameLoopThread(gameView, gameViewModel);
             }
@@ -77,7 +78,7 @@ public class GameActivity extends AppCompatActivity {
         }
         catch (Exception e) {
             e.printStackTrace();
-        }
+        }*/
     }
 
     @Override
@@ -85,7 +86,7 @@ public class GameActivity extends AppCompatActivity {
         super.onPause();
         try{
             gameLoopThread.allowExecution(false);
-            gameLoopThread.interrupt();
+            //gameLoopThread.interrupt();
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -94,15 +95,15 @@ public class GameActivity extends AppCompatActivity {
         //remember current entities
         gameGlobal.setMobs(new ArrayList<>(gameViewModel.getMobs().getValue()));
 
-        //TODO what is the meaning of this:
-        /*boolean retry = true;
+        //wait for the thread to terminate
+        boolean retry = true;
         while (retry) {
             try {
                 gameLoopThread.join();
                 retry = false;
             } catch (InterruptedException e) {
                 e.printStackTrace(); }
-        }*/
+        }
     }
 
     @Override

@@ -10,6 +10,7 @@ public class GameLoopThread extends Thread implements Runnable{
     private final GameViewModel gameViewModel;
     private final GameView gameView;
     private final GameGlobal gameGlobal;
+
     private boolean isRunning = false;
 
     public GameLoopThread(GameView gameView, GameViewModel gameViewModel) {
