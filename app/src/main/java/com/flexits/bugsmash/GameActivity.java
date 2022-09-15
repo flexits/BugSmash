@@ -19,6 +19,7 @@ public class GameActivity extends AppCompatActivity {
     private GameGlobal gameGlobal;
     private GameViewModel gameViewModel;
     private GameLoopThread gameLoopThread;
+    private Point displSize;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,7 +34,7 @@ public class GameActivity extends AppCompatActivity {
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
 
         //get display size
-        Point displSize = new Point();
+        displSize = new Point();
         getWindowManager().getDefaultDisplay().getRealSize(displSize);
 
         //create LiveData model and populate the list of entities
@@ -64,7 +65,7 @@ public class GameActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         //create background worker thread
-        gameLoopThread = new GameLoopThread(gameViewModel);
+        gameLoopThread = new GameLoopThread(gameViewModel, displSize);
         gameLoopThread.allowExecution(true);
         gameLoopThread.start();
     }
@@ -74,7 +75,6 @@ public class GameActivity extends AppCompatActivity {
         super.onPause();
         try{
             gameLoopThread.allowExecution(false);
-            //gameLoopThread.interrupt();
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -112,7 +112,7 @@ public class GameActivity extends AppCompatActivity {
 
     //generate a list of mobs with random coordinates
     private void mobsGenerator(ArrayList<Mob> mobs, Point viewSize){
-        final int MOBS_QUANTITY = 13;
+        final int MOBS_QUANTITY = 20;
 
         if (mobs == null) mobs = new ArrayList<>();
         else mobs.clear();
@@ -123,12 +123,13 @@ public class GameActivity extends AppCompatActivity {
         //list of available species
         ArrayList<MobSpecies> species = new ArrayList<>();
         species.add(new MobSpecies(BitmapFactory.decodeResource(getResources(), R.drawable.spider_40px)));
+        species.add(new MobSpecies(BitmapFactory.decodeResource(getResources(), R.drawable.hornet_40px)));
 
         for (int i=0; i<MOBS_QUANTITY; i++){
             //pick random species
-            MobSpecies ms = species.get(generateRnd(0,species.size()));
+            MobSpecies ms = species.get(generateRnd(0, species.size()-1));
             //pick random screen side to spawn a mob on
-            int sideIndex = generateRnd(0,4);
+            int sideIndex = generateRnd(1, 4);
             //generate coordinates and movement vectors' angles
             //(a mob never goes back; a movement vector is normal to the side a mob is spawned on)
             int x_max = viewSize.x - ms.getBmp().getWidth();
@@ -138,25 +139,25 @@ public class GameActivity extends AppCompatActivity {
                 case 1:
                     //upper side
                     y = 0;
-                    x = generateRnd(0,x_max);
+                    x = generateRnd(0, x_max);
                     angleDeg = 180;
                     break;
                 case 2:
                     //right side
                     x = x_max;
-                    y = generateRnd(0,y_max);
+                    y = generateRnd(0, y_max);
                     angleDeg = 270;
                     break;
                 case 3:
                     //bottom side
                     y = y_max;
-                    x = generateRnd(0,x_max);
+                    x = generateRnd(0, x_max);
                     angleDeg = 360;
                     break;
                 case 4:
                     //left side
                     x = 0;
-                    y = generateRnd(0,y_max);
+                    y = generateRnd(0, y_max);
                     angleDeg = 90;
                     break;
             }
@@ -192,8 +193,7 @@ public class GameActivity extends AppCompatActivity {
     }
 
     private int generateRnd(int min, int max){
-        if (min>=max) throw new IllegalArgumentException();
-        if (min+1 == max) return min;
+        if (min >= max) throw new IllegalArgumentException();
         return min + (int)(Math.random() * ((max - min) + 1));
     }
 
