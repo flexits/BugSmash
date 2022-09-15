@@ -139,25 +139,25 @@ public class GameActivity extends AppCompatActivity {
                     //upper side
                     y = 0;
                     x = generateRnd(0,x_max);
-                    angleDeg = 270;
+                    angleDeg = 180;
                     break;
                 case 2:
                     //right side
                     x = x_max;
                     y = generateRnd(0,y_max);
-                    angleDeg = 180;
+                    angleDeg = 270;
                     break;
                 case 3:
                     //bottom side
                     y = y_max;
                     x = generateRnd(0,x_max);
-                    angleDeg = 90;
+                    angleDeg = 360;
                     break;
                 case 4:
                     //left side
                     x = 0;
                     y = generateRnd(0,y_max);
-                    angleDeg = 360;
+                    angleDeg = 90;
                     break;
             }
             //ensure the objects don't overlap
@@ -182,6 +182,7 @@ public class GameActivity extends AppCompatActivity {
             ){
                 i--;
                 continue;
+                //TODO limit iterations here
             }
             //deflect movement vector +- 45 degrees
             angleDeg += (generateRnd(0, 90) - 45);

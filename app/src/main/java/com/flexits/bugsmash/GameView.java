@@ -100,7 +100,7 @@ class DrawThread extends Thread{
             //canvas.drawBitmap(m.getSpecies().getBmp(), m.getCoord().x, m.getCoord().y,null);
             Bitmap bmp = m.getSpecies().getBmp();
             Matrix matrix = new Matrix();
-            matrix.postRotate(270, bmp.getWidth()/2, bmp.getHeight()/2);
+            matrix.postRotate(m.getVectAngle(), bmp.getWidth()/2, bmp.getHeight()/2);
             matrix.postTranslate(m.getCoord().x, m.getCoord().y);
             canvas.drawBitmap(bmp, matrix, null);
         }

@@ -34,10 +34,12 @@ public class GameLoopThread extends Thread implements Runnable{
                 float y = m.getCoord().y;
                 int angle = m.getVectAngle();
                 //add some trajectory jitter
-                //angle += (generateRnd(0, 160) - 80);
+                angle += (generateRnd(0, 10) - 5);
                 //calculate new coordinates
-                float new_x_start = x + (float)(MOBS_VELOCITY * Math.cos(Math.toRadians(angle)));
-                float new_y_start = y + (float)(-1 * MOBS_VELOCITY * Math.sin(Math.toRadians(angle)));
+                //float new_x_start = x + (float)(MOBS_VELOCITY * Math.cos(Math.toRadians(angle)));
+                //float new_y_start = y + (float)(-1 * MOBS_VELOCITY * Math.sin(Math.toRadians(angle)));
+                float new_x_start = x + (float)(MOBS_VELOCITY * Math.sin(Math.toRadians(angle)));
+                float new_y_start = y + (float)(-1 * MOBS_VELOCITY * Math.cos(Math.toRadians(angle)));
                 //perform collision test
                 float new_width = m.getSpecies().getBmp().getWidth();
                 float new_x_end = new_x_start + new_width;
@@ -65,6 +67,7 @@ public class GameLoopThread extends Thread implements Runnable{
                     float y_projection_end = Math.max(Math.max(new_y_start, mob_y_start), Math.max(new_y_end, mob_y_end));
                     float y_projection_diff = (new_height + mob_height) - (y_projection_end - y_projection_start);
                     if (y_projection_diff > x_projection_diff){
+                        //TODO angles are wrong now
                         //collision on the Y axis
                         if (Math.sin(Math.toRadians(angle)) > 0) {
                             //moving down
@@ -88,16 +91,8 @@ public class GameLoopThread extends Thread implements Runnable{
                     break;
                 }
                 //if (x_collision && y_collision) continue;
-                /*if (isOverlapping(
-                        mobs,
-                        new PointF(new_x, new_y),
-                        new Point(m.getSpecies().getBmp().getWidth(), m.getSpecies().getBmp().getHeight()),
-                        m.hashCode())
-                ){
-                    continue;
-                    //if collision detected, turn clockwise
-                }*/
                 m.setCoord(new PointF(new_x_start, new_y_start));
+                m.setVectAngle(angle);
                 //TODO screen boundaries
                 //TODO mob collisions
                 //TODO store collided object's hash to check firstly
@@ -112,26 +107,6 @@ public class GameLoopThread extends Thread implements Runnable{
             gameViewModel.getIsUpdated().postValue(Boolean.TRUE);
             //TODO control FPS
         }
-    }
-
-    private boolean isOverlapping(List<Mob> mobs, PointF coordinates, Point dimensions, int excludeHash){
-        float x = coordinates.x;
-        float y = coordinates.y;
-        float x_end = x + dimensions.x;
-        float y_end = y + dimensions.y;
-        boolean result = false;
-        for (Mob m : mobs){
-            if (m.hashCode() == excludeHash) continue;
-            float mob_x_start = m.getCoord().x;
-            float mob_x_end = mob_x_start + m.getSpecies().getBmp().getWidth();
-            if (x > mob_x_end || x_end < mob_x_start) continue;
-            float mob_y_start = m.getCoord().y;
-            float mob_y_end = mob_y_start + m.getSpecies().getBmp().getHeight();
-            if (y > mob_y_end || y_end < mob_y_start) continue;
-            result = true;
-            break;
-        }
-        return result;
     }
 
     private int generateRnd(int min, int max){

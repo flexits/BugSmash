@@ -33,8 +33,9 @@ public class Mob {
         return vector;
     }
 
-    public void setVectAngle(int vector) {
-        this.vector = vector;
+    public void setVectAngle(int angle) {
+        if (angle > 360) angle -= 360;
+        this.vector = angle;
     }
 
     public boolean isAlive() {
