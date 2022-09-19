@@ -6,21 +6,26 @@ import androidx.core.view.WindowCompat;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
+import android.annotation.SuppressLint;
 import android.graphics.BitmapFactory;
 import android.graphics.Point;
 import android.graphics.PointF;
 import android.os.Bundle;
+import android.view.MotionEvent;
 import android.view.View;
 
 import java.util.ArrayList;
 
 public class GameActivity extends AppCompatActivity {
+    final int MOBS_QUANTITY = 20;
+
     private GameView gameView;
     private GameGlobal gameGlobal;
     private GameViewModel gameViewModel;
     private GameLoopThread gameLoopThread;
     private Point displSize;
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -36,6 +41,9 @@ public class GameActivity extends AppCompatActivity {
         //get display size
         displSize = new Point();
         getWindowManager().getDefaultDisplay().getRealSize(displSize);
+
+        //instantiate sound manager
+        SoundManager.instantiate(this);
 
         //create LiveData model and populate the list of entities
         gameViewModel = new ViewModelProvider(this).get(GameViewModel.class);
@@ -58,6 +66,15 @@ public class GameActivity extends AppCompatActivity {
             }
         };
         gameViewModel.getIsUpdated().observe(this, observer);
+
+        //create touch listener
+        gameView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                gameLoopThread.hitTest(new PointF(motionEvent.getX(), motionEvent.getY()));
+                return false;
+            }
+        });
     }
 
 
@@ -95,6 +112,12 @@ public class GameActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onStop(){
+        super.onStop();
+        SoundManager.release();
+    }
+
+    @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
         //hide the system bars
@@ -112,8 +135,6 @@ public class GameActivity extends AppCompatActivity {
 
     //generate a list of mobs with random coordinates
     private void mobsGenerator(ArrayList<Mob> mobs, Point viewSize){
-        final int MOBS_QUANTITY = 20;
-
         if (mobs == null) mobs = new ArrayList<>();
         else mobs.clear();
 
@@ -162,20 +183,6 @@ public class GameActivity extends AppCompatActivity {
                     break;
             }
             //ensure the objects don't overlap
-            /*boolean isOverlapping = false;
-            int x_end = x + ms.getBmp().getWidth();
-            int y_end = y + ms.getBmp().getHeight();
-            for (Mob m : mobs){
-                isOverlapping = false;
-                int mob_x_start = (int)m.getCoord().x;
-                int mob_x_end = mob_x_start + m.getSpecies().getBmp().getWidth();
-                if (x > mob_x_end || x_end < mob_x_start) continue;
-                int mob_y_start = (int)m.getCoord().y;
-                int mob_y_end = mob_y_start + m.getSpecies().getBmp().getHeight();
-                if (y > mob_y_end || y_end < mob_y_start) continue;
-                isOverlapping = true;
-                break;
-            }*/
             if (isOverlapping
                     (mobs,
                     new Point(x , y),

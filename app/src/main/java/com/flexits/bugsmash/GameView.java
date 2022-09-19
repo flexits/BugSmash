@@ -96,7 +96,7 @@ class DrawThread extends Thread{
         MutableLiveData<List<Mob>> mobs =  gameViewModel.getMobs();
         if (mobs == null) return;
         for(Mob m : mobs.getValue()){
-            if (!m.isAlive()) continue;
+            if (m.isKilled()) continue;
             //canvas.drawBitmap(m.getSpecies().getBmp(), m.getCoord().x, m.getCoord().y,null);
             Bitmap bmp = m.getSpecies().getBmp();
             Matrix matrix = new Matrix();

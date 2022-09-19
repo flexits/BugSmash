@@ -38,19 +38,15 @@ public class Mob {
         this.vector = angle;
     }
 
-    public boolean isAlive() {
-        return isAlive;
+    public boolean isKilled() {
+        return !isAlive;
     }
 
-    public void setAlive(boolean alive) {
-        isAlive = alive;
-    }
+    public void Kill() { isAlive = false; }
+
+    public void Revive() { isAlive = true; }
 
     public MobSpecies getSpecies() {
         return species;
-    }
-
-    public void setSpecies(MobSpecies species) {
-        this.species = species;
     }
 }

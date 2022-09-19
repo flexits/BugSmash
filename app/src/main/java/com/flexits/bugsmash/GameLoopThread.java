@@ -11,12 +11,13 @@ public class GameLoopThread extends Thread implements Runnable{
     private final float MOBS_VELOCITY = 7f; //px per cycle
     private final int TRAJECTORY_JITTER = 4;
     private final int AVOID_COLLISION_ATTEMPTS = 12;
-    private final int COLLISION_TURN_ANGLE = 30;
+    private final int COLLISION_TURN_ANGLE = 15;
 
+    private boolean isRunning = false;
     private final GameViewModel gameViewModel;
     private final Point displaySize;
 
-    private boolean isRunning = false;
+    private final ArrayList<PointF> touchCoords = new ArrayList<>();
 
     public GameLoopThread(GameViewModel gameViewModel, Point displaySize) {
         this.gameViewModel = gameViewModel;
@@ -28,18 +29,38 @@ public class GameLoopThread extends Thread implements Runnable{
         this.isRunning = isAllowed;
     }
 
+    public void hitTest(PointF coord){
+        if (coord == null) return;
+        touchCoords.add(coord);
+    }
+
     @Override
     public void run() {
         while (isRunning) {
             List<Mob> mobs = gameViewModel.getMobs().getValue();
             for(Mob m : mobs){
-                if (!m.isAlive()) continue;
-                int hash = m.hashCode();
+                if (m.isKilled()) continue;
                 float x = m.getCoord().x;
                 float y = m.getCoord().y;
-                int angle = m.getVectAngle();
                 int m_width = m.getSpecies().getBmp().getWidth();
                 int m_height = m.getSpecies().getBmp().getHeight();
+                //perform hit test
+                boolean isHit = false;
+                for(PointF coord : touchCoords){
+                    isHit = (coord.x >= x) && (coord.x <= m_width + x)
+                            && (coord.y >= y) && (coord.y <= m_height + y);
+                    if (isHit){
+                        touchCoords.remove(coord);
+                        break;
+                    }
+                }
+                if (isHit) {
+                    m.Kill();
+                    SoundManager.playCrunch();
+                    continue;
+                }
+                int hash = m.hashCode();
+                int angle = m.getVectAngle();
                 //add some trajectory jitter
                 angle += (generateRnd(0, TRAJECTORY_JITTER) - TRAJECTORY_JITTER/2);
                 //change new position avoiding collisions
@@ -81,19 +102,26 @@ public class GameLoopThread extends Thread implements Runnable{
                     break;
                 }
             }
+
+            //all remaining touch events are misses, clear them
+            if (!touchCoords.isEmpty()){
+                touchCoords.clear();
+                SoundManager.playErrAlert();
+            }
+
+            //sleep to limit FPS and system load
             try {
                 Thread.sleep(50);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-
+            //indicate a data update
             gameViewModel.getIsUpdated().postValue(Boolean.TRUE);
         }
     }
 
     private int generateRnd(int min, int max){
-        if (min>=max) throw new IllegalArgumentException();
-        if (min+1 == max) return min;
+        if (min >= max) throw new IllegalArgumentException();
         return min + (int)(Math.random() * ((max - min) + 1));
     }
 }
