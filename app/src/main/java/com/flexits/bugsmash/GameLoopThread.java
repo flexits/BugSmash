@@ -64,32 +64,31 @@ public class GameLoopThread extends Thread implements Runnable{
                 //add some trajectory jitter
                 angle += (generateRnd(0, TRAJECTORY_JITTER) - TRAJECTORY_JITTER/2);
                 //change new position avoiding collisions
+                Mob collidedMob = null; //the object a collision had happened with
                 for(int attempts = AVOID_COLLISION_ATTEMPTS; attempts >= 0; attempts--){
                     //calculate new coordinates
-                    float new_x_start = x + (float)(MOBS_VELOCITY * Math.sin(Math.toRadians(angle)));
-                    float new_y_start = y + (float)(-1 * MOBS_VELOCITY * Math.cos(Math.toRadians(angle)));
-                    float new_x_end = new_x_start + m_width;
-                    float new_y_end = new_y_start + m_height;
+                    PointF mob_start = new PointF(
+                            x + (float)(MOBS_VELOCITY * Math.sin(Math.toRadians(angle))),
+                            y + (float)(-1 * MOBS_VELOCITY * Math.cos(Math.toRadians(angle))));
+                    PointF mob_end = new PointF(mob_start.x + m_width, mob_start.y + m_height);
                     //perform collision test with screen boundaries
-                    boolean collision = (new_x_start < 0)
-                            || (new_x_end > displaySize.x)
-                            || (new_y_start < 0)
-                            || (new_y_end > displaySize.y);
+                    boolean collision = (mob_start.x < 0)
+                            || (mob_end.x > displaySize.x)
+                            || (mob_start.y < 0)
+                            || (mob_end.y > displaySize.y);
+                    //perform collision test with a previously remembered object, if any
+                    if (!collision && (collidedMob != null)) {
+                        collision = checkCollision(collidedMob, mob_start, mob_end);
+                    }
+                    //perform collision test with other objects
                     if (!collision) {
-                        //perform collision test with other objects
                         for (Mob mb : mobs) {
-                            if (mb.hashCode() == hash) continue;    //do not compare with itself
-                            float mob_x_start = mb.getCoord().x;
-                            float mob_x_end = mob_x_start + mb.getSpecies().getBmp().getWidth();
-                            if (new_x_start > mob_x_end || new_x_end < mob_x_start)
-                                continue;   //no coincidence on the X axis, go to another object
-                            float mob_y_start = mb.getCoord().y;
-                            float mob_y_end = mob_y_start + mb.getSpecies().getBmp().getHeight();
-                            if (new_y_start > mob_y_end || new_y_end < mob_y_start)
-                                continue;   //no coincidence on the Y axis, go to another object
-                            collision = true; //collision detected, finish comparison
-                            break;
-                            //TODO store collided object hash to check firstly after turn
+                            if (mb.hashCode() == hash) continue;    //avoid compare to itself
+                            collision = checkCollision(mb, mob_start, mob_end);
+                            if (collision){
+                                collidedMob = mb;
+                                break;
+                            }
                         }
                     }
                     //if collision detected, turn clockwise and retry test
@@ -97,7 +96,7 @@ public class GameLoopThread extends Thread implements Runnable{
                         angle += COLLISION_TURN_ANGLE;
                         continue;
                     }
-                    m.setCoord(new PointF(new_x_start, new_y_start));
+                    m.setCoord(mob_start);
                     m.setVectAngle(angle);
                     break;
                 }
@@ -123,5 +122,15 @@ public class GameLoopThread extends Thread implements Runnable{
     private int generateRnd(int min, int max){
         if (min >= max) throw new IllegalArgumentException();
         return min + (int)(Math.random() * ((max - min) + 1));
+    }
+
+    private boolean checkCollision(Mob mb, PointF start, PointF end){
+        float mob_x_start = mb.getCoord().x;
+        float mob_x_end = mob_x_start + mb.getSpecies().getBmp().getWidth();
+        if (start.x > mob_x_end || end.x < mob_x_start) return false;
+        float mob_y_start = mb.getCoord().y;
+        float mob_y_end = mob_y_start + mb.getSpecies().getBmp().getHeight();
+        if (start.y > mob_y_end || end.y < mob_y_start) return false;
+        return true;
     }
 }
