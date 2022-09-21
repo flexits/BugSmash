@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
@@ -69,7 +70,6 @@ class DrawThread extends Thread{
     public void run() {
         while (isRunning) {
             //obtain canvas and perform drawing
-
             if (!holder.getSurface().isValid()) return;
             Canvas canvas = null;
             try {
@@ -91,18 +91,41 @@ class DrawThread extends Thread{
         }
     }
 
-    private void performDraw(Canvas canvas){
+    private void performDraw(Canvas canvas) {
         canvas.drawColor(Color.YELLOW);
-        MutableLiveData<List<Mob>> mobs =  gameViewModel.getMobs();
-        if (mobs == null) return;
-        for(Mob m : mobs.getValue()){
-            if (m.isKilled()) continue;
-            //canvas.drawBitmap(m.getSpecies().getBmp(), m.getCoord().x, m.getCoord().y,null);
-            Bitmap bmp = m.getSpecies().getBmp();
-            Matrix matrix = new Matrix();
-            matrix.postRotate(m.getVectAngle(), bmp.getWidth()/2, bmp.getHeight()/2);
-            matrix.postTranslate(m.getCoord().x, m.getCoord().y);
-            canvas.drawBitmap(bmp, matrix, null);
+        MutableLiveData<List<Mob>> mobs = gameViewModel.getMobs();
+
+        Boolean isOver = gameViewModel.getIsOver().getValue();
+        if (isOver) {
+            //game over
+            Paint p = new Paint();
+            p.setColor(Color.BLUE);
+            p.setStrokeWidth(20);
+            p.setTextSize(48);
+            //TODO gameover banner
+            canvas.drawText("Game over!", 100, 100, p);
+        } else {
+            //game continues
+            if (mobs == null) return;
+            for (Mob m : mobs.getValue()) {
+                if (m.isKilled()) continue;
+                //canvas.drawBitmap(m.getSpecies().getBmp(), m.getCoord().x, m.getCoord().y,null);
+                Bitmap bmp = m.getSpecies().getBmp();
+                Matrix matrix = new Matrix();
+                matrix.postRotate(m.getVectAngle(), bmp.getWidth() / 2, bmp.getHeight() / 2);
+                matrix.postTranslate(m.getCoord().x, m.getCoord().y);
+                canvas.drawBitmap(bmp, matrix, null);
+            }
+            String time = String.valueOf(gameViewModel.getTimeRemaining().getValue());
+            String score = String.valueOf(gameViewModel.getScore().getValue());
+            //TODO: convert to mm:ss
+            Paint p = new Paint();
+            p.setColor(Color.BLUE);
+            p.setStrokeWidth(20);
+            p.setTextSize(48);
+            //TODO test position and style
+            canvas.drawText(time, 100, 100, p);
+            canvas.drawText(score, 300, 100, p);
         }
     }
 }

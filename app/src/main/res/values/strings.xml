@@ -1,16 +1,22 @@
 <resources>
     <string name="app_name">BugSmash</string>
-    <string name="action_settings">Settings</string>
     <string name="action_about">About</string>
     <!-- Strings used for fragments for navigation -->
     <string name="first_fragment_label">BugSmasher</string>
-    <string name="second_fragment_label">BugSmasher</string>
     <string name="about_fragment_label">About</string>
     <string name="next">Next</string>
-    <string name="previous">Previous</string>
-
-    <string name="hello_first_fragment">Hello first fragment</string>
-    <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
+    <string name="hello_first_fragment">Welcome to BugSmasher game!</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="title_activity_game">GameActivity</string>
+    <string name="str_name_inv">Enter your name:</string>
+    <string name="str_quantity_inv">Enter bugs quantity:</string>
+    <string name="str_score_line">Max score is:\n </string>
+    <!-- Preferences names and default values -->
+    <string name="pref_filename">BugSmasherPrefs</string>
+    <string name="pref_usr_name">usr_name</string>
+    <string name="pref_usr_name_default">M.Gamer</string>
+    <string name="pref_mobs_quantity">mob_quantity</string>
+    <string name="pref_mobs_quantity_default">20</string>
+    <string name="pref_max_score">max_score</string>
+    <string name="pref_max_score_default">no score yet!</string>
 </resources>

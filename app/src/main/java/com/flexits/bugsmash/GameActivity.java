@@ -7,6 +7,9 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.graphics.BitmapFactory;
 import android.graphics.Point;
 import android.graphics.PointF;
@@ -17,7 +20,6 @@ import android.view.View;
 import java.util.ArrayList;
 
 public class GameActivity extends AppCompatActivity {
-    final int MOBS_QUANTITY = 20;
 
     private GameView gameView;
     private GameGlobal gameGlobal;
@@ -48,16 +50,30 @@ public class GameActivity extends AppCompatActivity {
         //create LiveData model and populate the list of entities
         gameViewModel = new ViewModelProvider(this).get(GameViewModel.class);
         gameGlobal = (GameGlobal) getApplication();
+
+        SharedPreferences sPref = getSharedPreferences(
+                getResources().getString(R.string.pref_filename),
+                Context.MODE_PRIVATE);
+        int mobs_quantity = 0;
+        try{
+            mobs_quantity = Integer.parseInt(
+                    sPref.getString(
+                            getResources().getString(R.string.pref_mobs_quantity),
+                            getResources().getString(R.string.pref_mobs_quantity_default))
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         ArrayList<Mob> mobs = gameGlobal.getMobs();
-        if (mobs.size() <= 0) { mobsGenerator(mobs, displSize); }
+        if (mobs.size() <= 0) { mobsGenerator(mobs, mobs_quantity, displSize); }
         gameViewModel.getMobs().setValue(mobs);
 
         //create gameview
         gameView = new GameView(this, gameViewModel);
         setContentView(gameView);
 
-        //get LiveData provider to observe changes
-        final Observer<Boolean> observer = new Observer<Boolean>() {
+        //get LiveData provider to observe changes and update screen if any
+        final Observer<Boolean> updateObserver = new Observer<Boolean>() {
             @Override
             public void onChanged(Boolean flag) {
                 if (!Boolean.TRUE.equals(flag)) return;
@@ -65,7 +81,8 @@ public class GameActivity extends AppCompatActivity {
                 gameViewModel.getIsUpdated().setValue(Boolean.FALSE);
             }
         };
-        gameViewModel.getIsUpdated().observe(this, observer);
+        gameViewModel.getIsUpdated().observe(this, updateObserver);
+        //TODO remember maxscore on gameover
 
         //create touch listener
         gameView.setOnTouchListener(new View.OnTouchListener() {
@@ -133,19 +150,20 @@ public class GameActivity extends AppCompatActivity {
     }
 
     //generate a list of mobs with random coordinates
-    private void mobsGenerator(ArrayList<Mob> mobs, Point viewSize){
+    private void mobsGenerator(ArrayList<Mob> mobs, int quantity, Point viewSize){
+        final int PLACEMENT_ITERATIONS = 20;    //limit of attempts to place mobs without overlapping
+
         if (mobs == null) mobs = new ArrayList<>();
         else mobs.clear();
-
-        //mobs are generated at the borders of the screen on either side of it
-        //mob species are picked randomly
 
         //list of available species
         ArrayList<MobSpecies> species = new ArrayList<>();
         species.add(new MobSpecies(BitmapFactory.decodeResource(getResources(), R.drawable.spider_40px)));
         species.add(new MobSpecies(BitmapFactory.decodeResource(getResources(), R.drawable.hornet_40px)));
 
-        for (int i=0; i<MOBS_QUANTITY; i++){
+        //generate a given number of mobs with random placement at the borders of the screen and
+        //random movement vectors, trying to avoid overlapping
+        for (int counter=0, attempts=0; counter<quantity && attempts<PLACEMENT_ITERATIONS;){
             //pick random species
             MobSpecies ms = species.get(generateRnd(0, species.size()-1));
             //pick random screen side to spawn a mob on
@@ -187,15 +205,16 @@ public class GameActivity extends AppCompatActivity {
                     new Point(x , y),
                     new Point(ms.getBmp().getWidth(), ms.getBmp().getHeight()))
             ){
-                i--;
+                //if object overlap, run an additional placement iteration
+                attempts++;
                 continue;
-                //TODO limit iterations here
             }
-            //deflect movement vector +- 45 degrees
+            //randomly deflect movement vector +- 45 degrees
             angleDeg += (generateRnd(0, 90) - 45);
             mobs.add(new Mob(x, y, angleDeg,true, ms));
+            counter++;
+            attempts = 0;
         }
-
     }
 
     private int generateRnd(int min, int max){
@@ -203,6 +222,7 @@ public class GameActivity extends AppCompatActivity {
         return min + (int)(Math.random() * ((max - min) + 1));
     }
 
+    //check if an object with given starting point and dimensions overlaps with either mob
     private boolean isOverlapping(ArrayList<Mob> mobs, Point coordinates, Point dimensions){
         int x = coordinates.x;
         int y = coordinates.y;

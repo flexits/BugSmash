@@ -2,6 +2,7 @@ package com.flexits.bugsmash;
 
 import android.graphics.Point;
 import android.graphics.PointF;
+import android.os.CountDownTimer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,14 +15,28 @@ public class GameLoopThread extends Thread implements Runnable{
     private final int COLLISION_TURN_ANGLE = 15;
 
     private boolean isRunning = false;
+    private int score = 0;
     private final GameViewModel gameViewModel;
     private final Point displaySize;
+    private final CountDownTimer ctimer;
 
     private final ArrayList<PointF> touchCoords = new ArrayList<>();
 
     public GameLoopThread(GameViewModel gameViewModel, Point displaySize) {
         this.gameViewModel = gameViewModel;
         this.displaySize = displaySize;
+        ctimer = new CountDownTimer(30000, 1000) {
+            @Override
+            public void onTick(long l) {
+                gameViewModel.getTimeRemaining().postValue(l);
+            }
+
+            @Override
+            public void onFinish() {
+                isRunning = false;
+                gameViewModel.getIsOver().postValue(true);
+            }
+        };
     }
 
     //set flag to start or stop the thread
@@ -36,6 +51,8 @@ public class GameLoopThread extends Thread implements Runnable{
 
     @Override
     public void run() {
+        gameViewModel.getIsOver().postValue(false);
+        ctimer.start();
         while (isRunning) {
             List<Mob> mobs = gameViewModel.getMobs().getValue();
             for(Mob m : mobs){
@@ -57,6 +74,7 @@ public class GameLoopThread extends Thread implements Runnable{
                 if (isHit) {
                     m.Kill();
                     SoundManager.playCrunch();
+                    score++;
                     continue;
                 }
                 int hash = m.hashCode();
@@ -103,9 +121,12 @@ public class GameLoopThread extends Thread implements Runnable{
             }
 
             //all remaining touch events are misses, clear them
-            if (!touchCoords.isEmpty()){
+            int misses = touchCoords.size();
+            if (misses > 0){
                 touchCoords.clear();
                 SoundManager.playErrAlert();
+                score -= misses;
+                if (score < 0) score = 0;
             }
 
             //sleep to limit FPS and system load
@@ -114,9 +135,12 @@ public class GameLoopThread extends Thread implements Runnable{
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+            gameViewModel.getScore().postValue(score);
             //indicate a data update
             gameViewModel.getIsUpdated().postValue(Boolean.TRUE);
         }
+        //stop timer
+        if (ctimer != null) ctimer.cancel();
     }
 
     private int generateRnd(int min, int max){
