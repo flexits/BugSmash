@@ -10,29 +10,32 @@ import java.util.List;
 //all calculations of the game world are made here and saved into the LiveData object
 public class GameLoopThread extends Thread implements Runnable{
     private final float MOBS_VELOCITY = 7f; //px per cycle
-    private final int TRAJECTORY_JITTER = 4;
-    private final int AVOID_COLLISION_ATTEMPTS = 12;
-    private final int COLLISION_TURN_ANGLE = 15;
+    private final int VECTOR_JITTER = 4;    //degrees
+    private final int AVOID_COLLISION_ATTEMPTS = 12;//limit the number of attempts to avoid collision
+    private final int COLLISION_TURN_ANGLE = 15;    //when avoiding a collision, mob turns the given angle clockwise
 
-    private boolean isRunning = false;
-    private int score = 0;
+    private boolean isRunning = false;  //thread control variable
+    private int score = 0;              //hit adds a point, miss subtracts a point until 0
+    private final ArrayList<PointF> touchCoords = new ArrayList<>(); //touch coordinates to perform hit-test
+
     private final GameViewModel gameViewModel;
     private final Point displaySize;
     private final CountDownTimer ctimer;
-
-    private final ArrayList<PointF> touchCoords = new ArrayList<>();
+    //TODO load score and timer remaining value for implementing a pause game
 
     public GameLoopThread(GameViewModel gameViewModel, Point displaySize) {
         this.gameViewModel = gameViewModel;
         this.displaySize = displaySize;
+        //init a timer to limit the game round time
         ctimer = new CountDownTimer(30000, 1000) {
             @Override
             public void onTick(long l) {
-                gameViewModel.getTimeRemaining().postValue(l);
+                gameViewModel.getTimeRemaining().postValue(l);  //update time left value
             }
 
             @Override
             public void onFinish() {
+                //stop the thread and set the time over flag
                 isRunning = false;
                 gameViewModel.getIsOver().postValue(true);
             }
@@ -44,6 +47,7 @@ public class GameLoopThread extends Thread implements Runnable{
         this.isRunning = isAllowed;
     }
 
+    //
     public void hitTest(PointF coord){
         if (coord == null) return;
         touchCoords.add(coord);
@@ -51,6 +55,7 @@ public class GameLoopThread extends Thread implements Runnable{
 
     @Override
     public void run() {
+        //TODO revive mobs if there are too little of them
         gameViewModel.getIsOver().postValue(false);
         ctimer.start();
         while (isRunning) {
@@ -80,7 +85,7 @@ public class GameLoopThread extends Thread implements Runnable{
                 int hash = m.hashCode();
                 int angle = m.getVectAngle();
                 //add some trajectory jitter
-                angle += (generateRnd(0, TRAJECTORY_JITTER) - TRAJECTORY_JITTER/2);
+                angle += (generateRnd(0, VECTOR_JITTER) - VECTOR_JITTER /2);
                 //change new position avoiding collisions
                 Mob collidedMob = null; //the object a collision had happened with
                 for(int attempts = AVOID_COLLISION_ATTEMPTS; attempts >= 0; attempts--){
@@ -149,6 +154,7 @@ public class GameLoopThread extends Thread implements Runnable{
     }
 
     private boolean checkCollision(Mob mb, PointF start, PointF end){
+        //TODO move this into a method in mob class
         float mob_x_start = mb.getCoord().x;
         float mob_x_end = mob_x_start + mb.getSpecies().getBmp().getWidth();
         if (start.x > mob_x_end || end.x < mob_x_start) return false;

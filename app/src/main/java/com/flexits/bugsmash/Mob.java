@@ -7,7 +7,7 @@ public class Mob {
     private PointF coord;
     private int vector;
     private boolean isAlive;
-    private MobSpecies species;
+    private final MobSpecies species;
 
     public Mob(PointF coordinates, int vectorAngle, boolean isAlive, MobSpecies species) {
         if (coordinates == null) coord = new PointF(0, 0);

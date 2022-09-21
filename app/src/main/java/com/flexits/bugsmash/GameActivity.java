@@ -9,7 +9,6 @@ import androidx.lifecycle.ViewModelProvider;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.res.Resources;
 import android.graphics.BitmapFactory;
 import android.graphics.Point;
 import android.graphics.PointF;
@@ -101,6 +100,7 @@ public class GameActivity extends AppCompatActivity {
         gameLoopThread = new GameLoopThread(gameViewModel, displSize);
         gameLoopThread.allowExecution(true);
         gameLoopThread.start();
+        //TODO implement game pause/resume
     }
 
     @Override
@@ -230,6 +230,7 @@ public class GameActivity extends AppCompatActivity {
         int y_end = y + dimensions.y;
         boolean result = false;
         for (Mob m : mobs){
+            //TODO create an overlap check method in mob class
             int mob_x_start = (int)m.getCoord().x;
             int mob_x_end = mob_x_start + m.getSpecies().getBmp().getWidth();
             if (x > mob_x_end || x_end < mob_x_start) continue;
