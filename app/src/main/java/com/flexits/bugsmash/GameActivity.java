@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModelProvider;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Point;
 import android.graphics.PointF;
@@ -24,6 +25,7 @@ public class GameActivity extends AppCompatActivity {
     private GameGlobal gameGlobal;
     private GameViewModel gameViewModel;
     private GameLoopThread gameLoopThread;
+    private SharedPreferences sPref;
     private Point displSize;
 
     @SuppressLint("ClickableViewAccessibility")
@@ -50,28 +52,31 @@ public class GameActivity extends AppCompatActivity {
         gameViewModel = new ViewModelProvider(this).get(GameViewModel.class);
         gameGlobal = (GameGlobal) getApplication();
 
-        SharedPreferences sPref = getSharedPreferences(
+        //init preferences
+        sPref = getSharedPreferences(
                 getResources().getString(R.string.pref_filename),
                 Context.MODE_PRIVATE);
-        int mobs_quantity = 0;
-        try{
-            mobs_quantity = Integer.parseInt(
-                    sPref.getString(
-                            getResources().getString(R.string.pref_mobs_quantity),
-                            getResources().getString(R.string.pref_mobs_quantity_default))
-            );
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+
+        //generate mobs if new game or load existing collection on resume
         ArrayList<Mob> mobs = gameGlobal.getMobs();
-        if (mobs.size() <= 0) { mobsGenerator(mobs, mobs_quantity, displSize); }
+        if (mobs.size() <= 0) {
+            int mobs_quantity = 0;
+            try{
+                mobs_quantity = Integer.parseInt(
+                        sPref.getString(
+                                getResources().getString(R.string.pref_mobs_quantity),
+                                getResources().getString(R.string.pref_mobs_quantity_default))
+                );
+            } catch (Exception e){ e.printStackTrace(); }
+            mobsGenerator(mobs, mobs_quantity, displSize);
+        }
         gameViewModel.getMobs().setValue(mobs);
 
         //create gameview
         gameView = new GameView(this, gameViewModel);
         setContentView(gameView);
 
-        //get LiveData provider to observe changes and update screen if any
+        //observe LiveData changes flag and update screen if true
         final Observer<Boolean> updateObserver = new Observer<Boolean>() {
             @Override
             public void onChanged(Boolean flag) {
@@ -81,7 +86,17 @@ public class GameActivity extends AppCompatActivity {
             }
         };
         gameViewModel.getIsUpdated().observe(this, updateObserver);
-        //TODO remember maxscore on gameover
+
+        //observe LiveData gameover flag and update score if true
+        final Observer<Boolean> gameoverObserver = new Observer<Boolean>() {
+            @Override
+            public void onChanged(Boolean flag) {
+                if (!Boolean.TRUE.equals(flag)) return;
+                updateMaxScore();
+                mobs.clear();
+            }
+        };
+        gameViewModel.getIsOver().observe(this, gameoverObserver);
 
         //create touch listener
         gameView.setOnTouchListener(new View.OnTouchListener() {
@@ -100,13 +115,13 @@ public class GameActivity extends AppCompatActivity {
         gameLoopThread = new GameLoopThread(gameViewModel, displSize);
         gameLoopThread.allowExecution(true);
         gameLoopThread.start();
-        //TODO implement game pause/resume
+        //TODO implement game pause/resume - score
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        try{
+        try {
             gameLoopThread.allowExecution(false);
         }
         catch (Exception e) {
@@ -166,12 +181,13 @@ public class GameActivity extends AppCompatActivity {
         for (int counter=0, attempts=0; counter<quantity && attempts<PLACEMENT_ITERATIONS;){
             //pick random species
             MobSpecies ms = species.get(generateRnd(0, species.size()-1));
+            Bitmap ms_bmp = ms.getBmp();
             //pick random screen side to spawn a mob on
             int sideIndex = generateRnd(1, 4);
             //generate coordinates and movement vectors' angles
             //(a mob never goes back; a movement vector is normal to the side a mob is spawned on)
-            int x_max = viewSize.x - ms.getBmp().getWidth();
-            int y_max = viewSize.y - ms.getBmp().getHeight();
+            int x_max = viewSize.x - ms_bmp.getWidth();
+            int y_max = viewSize.y - ms_bmp.getHeight();
             int x=0, y=0, angleDeg = 0;
             switch (sideIndex){
                 case 1:
@@ -200,12 +216,16 @@ public class GameActivity extends AppCompatActivity {
                     break;
             }
             //ensure the objects don't overlap
-            if (isOverlapping
-                    (mobs,
-                    new Point(x , y),
-                    new Point(ms.getBmp().getWidth(), ms.getBmp().getHeight()))
-            ){
-                //if object overlap, run an additional placement iteration
+            PointF startp = new PointF(x , y);
+            PointF dimensns = new PointF(ms_bmp.getWidth(), ms_bmp.getHeight());
+            boolean isOverlapping = false;
+            for (Mob m : mobs) {
+                if (m.checkOverlap(startp, dimensns)){
+                    isOverlapping = true;
+                    break;
+                }
+            }
+            if (isOverlapping){
                 attempts++;
                 continue;
             }
@@ -222,24 +242,23 @@ public class GameActivity extends AppCompatActivity {
         return min + (int)(Math.random() * ((max - min) + 1));
     }
 
-    //check if an object with given starting point and dimensions overlaps with either mob
-    private boolean isOverlapping(ArrayList<Mob> mobs, Point coordinates, Point dimensions){
-        int x = coordinates.x;
-        int y = coordinates.y;
-        int x_end = x + dimensions.x;
-        int y_end = y + dimensions.y;
-        boolean result = false;
-        for (Mob m : mobs){
-            //TODO create an overlap check method in mob class
-            int mob_x_start = (int)m.getCoord().x;
-            int mob_x_end = mob_x_start + m.getSpecies().getBmp().getWidth();
-            if (x > mob_x_end || x_end < mob_x_start) continue;
-            int mob_y_start = (int)m.getCoord().y;
-            int mob_y_end = mob_y_start + m.getSpecies().getBmp().getHeight();
-            if (y > mob_y_end || y_end < mob_y_start) continue;
-            result = true;
-            break;
+    private void updateMaxScore(){
+        int max_score = 0;
+        try {
+            max_score = Integer.parseInt(
+                    sPref.getString(
+                            getResources().getString(R.string.pref_max_score),
+                            getResources().getString(R.string.pref_max_score_default))
+            );
+        } catch (Exception e){ e.printStackTrace(); }
+        int current_score = gameViewModel.getScore().getValue();
+        if (current_score > max_score){
+            SharedPreferences.Editor spEditor =  sPref.edit();
+            spEditor.putString(
+                    getResources().getString(R.string.pref_max_score),
+                    String.valueOf(current_score)
+            );
+            spEditor.commit();
         }
-        return result;
     }
 }

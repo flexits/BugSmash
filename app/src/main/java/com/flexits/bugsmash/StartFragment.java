@@ -26,7 +26,11 @@ public class StartFragment extends Fragment {
                              ViewGroup container,
                              Bundle savedInstanceState) {
         binding = FragmentFirstBinding.inflate(inflater, container, false);
+        return binding.getRoot();
+    }
 
+    @Override
+    public void onStart() {
         //update fields with saved settings
         sPref = getActivity().getSharedPreferences(
                 getResources().getString(R.string.pref_filename),
@@ -47,8 +51,7 @@ public class StartFragment extends Fragment {
                         getResources().getString(R.string.pref_max_score),
                         getResources().getString(R.string.pref_max_score_default))
         );
-
-        return binding.getRoot();
+        super.onStart();
     }
 
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {

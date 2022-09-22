@@ -1,5 +1,7 @@
 package com.flexits.bugsmash;
 
+import android.graphics.Bitmap;
+import android.graphics.Point;
 import android.graphics.PointF;
 
 //a moving entity class
@@ -48,5 +50,25 @@ public class Mob {
 
     public MobSpecies getSpecies() {
         return species;
+    }
+
+    //check if an object with given starting point and dimensions overlaps with the mob
+    public boolean checkOverlap(PointF coordinates, PointF dimensions){
+        float x = coordinates.x;
+        float y = coordinates.y;
+        float x_end = x + dimensions.x;
+        float y_end = y + dimensions.y;
+
+        Bitmap mob_bmp = species.getBmp();
+
+        float mob_x_start = coord.x;
+        float mob_x_end = mob_x_start + mob_bmp.getWidth();
+        if (x > mob_x_end || x_end < mob_x_start) return false;
+
+        float mob_y_start = coord.y;
+        float mob_y_end = mob_y_start + mob_bmp.getHeight();
+        if (y > mob_y_end || y_end < mob_y_start) return false;
+
+        return true;
     }
 }

@@ -27,7 +27,7 @@ public class GameLoopThread extends Thread implements Runnable{
         this.gameViewModel = gameViewModel;
         this.displaySize = displaySize;
         //init a timer to limit the game round time
-        ctimer = new CountDownTimer(30000, 1000) {
+        ctimer = new CountDownTimer(10000, 1000) {
             @Override
             public void onTick(long l) {
                 gameViewModel.getTimeRemaining().postValue(l);  //update time left value
@@ -81,6 +81,7 @@ public class GameLoopThread extends Thread implements Runnable{
                     SoundManager.playCrunch();
                     score++;
                     continue;
+                    //TODO temporary sprite on kill
                 }
                 int hash = m.hashCode();
                 int angle = m.getVectAngle();
@@ -93,21 +94,24 @@ public class GameLoopThread extends Thread implements Runnable{
                     PointF mob_start = new PointF(
                             x + (float)(MOBS_VELOCITY * Math.sin(Math.toRadians(angle))),
                             y + (float)(-1 * MOBS_VELOCITY * Math.cos(Math.toRadians(angle))));
-                    PointF mob_end = new PointF(mob_start.x + m_width, mob_start.y + m_height);
+                    //PointF mob_end = new PointF(mob_start.x + m_width, mob_start.y + m_height);
+                    PointF mob_dimensions = new PointF(m_width, m_height);
                     //perform collision test with screen boundaries
                     boolean collision = (mob_start.x < 0)
-                            || (mob_end.x > displaySize.x)
+                            || (mob_start.x + m_width > displaySize.x)
                             || (mob_start.y < 0)
-                            || (mob_end.y > displaySize.y);
+                            || (mob_start.y + m_height > displaySize.y);
                     //perform collision test with a previously remembered object, if any
                     if (!collision && (collidedMob != null)) {
-                        collision = checkCollision(collidedMob, mob_start, mob_end);
+                        //collision = checkCollision(collidedMob, mob_start, mob_end);
+                        collision = collidedMob.checkOverlap(mob_start, mob_dimensions);
                     }
                     //perform collision test with other objects
                     if (!collision) {
                         for (Mob mb : mobs) {
                             if (mb.hashCode() == hash) continue;    //avoid compare to itself
-                            collision = checkCollision(mb, mob_start, mob_end);
+                            //collision = checkCollision(mb, mob_start, mob_end);
+                            collision = mb.checkOverlap(mob_start, mob_dimensions);
                             if (collision){
                                 collidedMob = mb;
                                 break;
@@ -151,16 +155,5 @@ public class GameLoopThread extends Thread implements Runnable{
     private int generateRnd(int min, int max){
         if (min >= max) throw new IllegalArgumentException();
         return min + (int)(Math.random() * ((max - min) + 1));
-    }
-
-    private boolean checkCollision(Mob mb, PointF start, PointF end){
-        //TODO move this into a method in mob class
-        float mob_x_start = mb.getCoord().x;
-        float mob_x_end = mob_x_start + mb.getSpecies().getBmp().getWidth();
-        if (start.x > mob_x_end || end.x < mob_x_start) return false;
-        float mob_y_start = mb.getCoord().y;
-        float mob_y_end = mob_y_start + mb.getSpecies().getBmp().getHeight();
-        if (start.y > mob_y_end || end.y < mob_y_start) return false;
-        return true;
     }
 }
