@@ -6,15 +6,16 @@ import androidx.lifecycle.ViewModel;
 import java.util.ArrayList;
 import java.util.List;
 
-//ViewModel stores the UI-content, updatable by the game loop
+//ViewModel provides an observable data storage for the game content, updatable by the game loop,
+//and asynchronous access to the data is provided by the MutableLiveData objects
 
 public class GameViewModel extends ViewModel {
     private MutableLiveData<List<Mob>>mobs;     //list of mobs
     private MutableLiveData<Boolean>isUpdated;  //the flag is set upon the list update and
                                                 //is reset upon the UI update
-    private MutableLiveData<Long> timeRemaining;
-    private MutableLiveData<Integer> score;
-    private MutableLiveData<Boolean>isOver;
+    private MutableLiveData<Long> timeRemaining;//remaining round time, millis
+    private MutableLiveData<Integer> score;     //current score
+    private MutableLiveData<Boolean>isOver;     //game over flag
 
     public MutableLiveData<Boolean> getIsUpdated() {
         if (isUpdated == null) isUpdated = new MutableLiveData<>(Boolean.FALSE);

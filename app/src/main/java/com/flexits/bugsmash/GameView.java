@@ -1,7 +1,9 @@
 package com.flexits.bugsmash;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
@@ -19,13 +21,14 @@ public class GameView extends SurfaceView {
     public GameView(Context context, GameViewModel gameViewModel) {
         super(context);
         SurfaceHolder holder = getHolder();
+        Resources resources = getResources();
         holder.addCallback(new SurfaceHolder.Callback() {
             @Override
             public void surfaceCreated(SurfaceHolder holder) {
                 //allow surface redraw
                 setWillNotDraw(false);
                 //create a drawing thread and start it
-                drawThread = new DrawThread(holder, gameViewModel);
+                drawThread = new DrawThread(holder, gameViewModel, resources);
                 drawThread.allowExecution(true);
                 drawThread.start();
             }
@@ -54,12 +57,14 @@ public class GameView extends SurfaceView {
 class DrawThread extends Thread{
     private final SurfaceHolder holder;
     private final GameViewModel gameViewModel;
+    private final Bitmap mobDyingSprite;
 
     private boolean isRunning = false;
 
-    public DrawThread(SurfaceHolder holder, GameViewModel gameViewModel){
+    public DrawThread(SurfaceHolder holder, GameViewModel gameViewModel, Resources resources){
         this.holder = holder;
         this.gameViewModel = gameViewModel;
+        mobDyingSprite = BitmapFactory.decodeResource(resources, R.drawable.blood_50px);
     }
 
     public void allowExecution(boolean isAllowed) {
@@ -108,9 +113,20 @@ class DrawThread extends Thread{
             //game continues
             if (mobs == null) return;
             for (Mob m : mobs.getValue()) {
-                if (m.isKilled()) continue;
-                //canvas.drawBitmap(m.getSpecies().getBmp(), m.getCoord().x, m.getCoord().y,null);
-                Bitmap bmp = m.getSpecies().getBmp();
+                //for each mob get its species picture if it's alive;
+                //or get a blood stain picture if it's dying;
+                //or skip the mob if it's already dead
+                Bitmap bmp;
+                if (m.isKilled()) {
+                    if (m.isDying()){
+                        bmp = mobDyingSprite;
+                        m.DecreaseLife();
+                    } else {
+                        continue;
+                    }
+                } else {
+                    bmp = m.getSpecies().getBmp();
+                }
                 Matrix matrix = new Matrix();
                 matrix.postRotate(m.getVectAngle(), bmp.getWidth() / 2, bmp.getHeight() / 2);
                 matrix.postTranslate(m.getCoord().x, m.getCoord().y);

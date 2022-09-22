@@ -13,9 +13,10 @@ public class GameLoopThread extends Thread implements Runnable{
     private final int VECTOR_JITTER = 4;    //degrees
     private final int AVOID_COLLISION_ATTEMPTS = 12;//limit the number of attempts to avoid collision
     private final int COLLISION_TURN_ANGLE = 15;    //when avoiding a collision, mob turns the given angle clockwise
+    private final int CNTDOWN_INTERVAL = 1000; //timer countdown interval
 
     private boolean isRunning = false;  //thread control variable
-    private int score = 0;              //hit adds a point, miss subtracts a point until 0
+    private int score;              //hit adds a point, miss subtracts a point until 0
     private final ArrayList<PointF> touchCoords = new ArrayList<>(); //touch coordinates to perform hit-test
 
     private final GameViewModel gameViewModel;
@@ -23,11 +24,12 @@ public class GameLoopThread extends Thread implements Runnable{
     private final CountDownTimer ctimer;
     //TODO load score and timer remaining value for implementing a pause game
 
-    public GameLoopThread(GameViewModel gameViewModel, Point displaySize) {
+    public GameLoopThread(GameViewModel gameViewModel, Point displaySize, long timerval, int score) {
         this.gameViewModel = gameViewModel;
         this.displaySize = displaySize;
+        this.score = score;
         //init a timer to limit the game round time
-        ctimer = new CountDownTimer(10000, 1000) {
+        ctimer = new CountDownTimer(timerval, CNTDOWN_INTERVAL) {
             @Override
             public void onTick(long l) {
                 gameViewModel.getTimeRemaining().postValue(l);  //update time left value
@@ -144,6 +146,7 @@ public class GameLoopThread extends Thread implements Runnable{
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+            //update score
             gameViewModel.getScore().postValue(score);
             //indicate a data update
             gameViewModel.getIsUpdated().postValue(Boolean.TRUE);

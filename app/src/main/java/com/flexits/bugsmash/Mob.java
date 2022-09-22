@@ -1,14 +1,23 @@
 package com.flexits.bugsmash;
 
 import android.graphics.Bitmap;
-import android.graphics.Point;
 import android.graphics.PointF;
 
 //a moving entity class
+
+//a mob lifecycle:
+// alive (isAlive==true & isDying==false)
+// -> dying (isAlive==false & isDying==true)
+// -> dead (isAlive==false & isDying==false)
+
 public class Mob {
+    private final int DYING_DURATION = 5;
+
     private PointF coord;
     private int vector;
     private boolean isAlive;
+    private boolean isDying;
+    private int lifeRemainder;
     private final MobSpecies species;
 
     public Mob(PointF coordinates, int vectorAngle, boolean isAlive, MobSpecies species) {
@@ -17,6 +26,8 @@ public class Mob {
         this.vector = vectorAngle;
         this.isAlive = isAlive;
         this.species = species;
+        isDying = false;
+        lifeRemainder = -1;
     }
 
     public Mob(int x, int y, int vectorAngle, boolean isAlive, MobSpecies species){
@@ -44,9 +55,19 @@ public class Mob {
         return !isAlive;
     }
 
-    public void Kill() { isAlive = false; }
+    public boolean isDying() {
+        return isDying;
+    }
 
-    public void Revive() { isAlive = true; }
+    public void Kill() {
+        isAlive = false;
+        isDying = true;
+        lifeRemainder = DYING_DURATION;
+    }
+
+    public void DecreaseLife() {
+        if (--lifeRemainder < 0) isDying = false;
+    }
 
     public MobSpecies getSpecies() {
         return species;

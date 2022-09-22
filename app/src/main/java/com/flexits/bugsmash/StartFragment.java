@@ -17,6 +17,7 @@ import androidx.navigation.fragment.NavHostFragment;
 import com.flexits.bugsmash.databinding.FragmentFirstBinding;
 
 public class StartFragment extends Fragment {
+    private final int ROUND_DURATION = 10000;
 
     private FragmentFirstBinding binding;
     private SharedPreferences sPref;
@@ -31,6 +32,7 @@ public class StartFragment extends Fragment {
 
     @Override
     public void onStart() {
+        super.onStart();
         //update fields with saved settings
         sPref = getActivity().getSharedPreferences(
                 getResources().getString(R.string.pref_filename),
@@ -51,7 +53,11 @@ public class StartFragment extends Fragment {
                         getResources().getString(R.string.pref_max_score),
                         getResources().getString(R.string.pref_max_score_default))
         );
-        super.onStart();
+        //set global game options
+        GameGlobal gameGlobal = (GameGlobal) getActivity().getApplication();
+        gameGlobal.setTimerval(ROUND_DURATION);
+        gameGlobal.setScore(0);
+        gameGlobal.getMobs().clear();
     }
 
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {

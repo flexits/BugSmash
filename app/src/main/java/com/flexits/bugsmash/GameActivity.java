@@ -20,13 +20,14 @@ import android.view.View;
 import java.util.ArrayList;
 
 public class GameActivity extends AppCompatActivity {
-
     private GameView gameView;
     private GameGlobal gameGlobal;
     private GameViewModel gameViewModel;
     private GameLoopThread gameLoopThread;
     private SharedPreferences sPref;
     private Point displSize;
+    private int score;
+    private long timerval;
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -44,9 +45,6 @@ public class GameActivity extends AppCompatActivity {
         //get display size
         displSize = new Point();
         getWindowManager().getDefaultDisplay().getRealSize(displSize);
-
-        //instantiate sound manager
-        SoundManager.instantiate(this);
 
         //create LiveData model and populate the list of entities
         gameViewModel = new ViewModelProvider(this).get(GameViewModel.class);
@@ -111,8 +109,14 @@ public class GameActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        //instantiate sound manager
+        SoundManager.instantiate(this);
+
+        //load game parameters
+        timerval = gameGlobal.getTimerval();
+        score = gameGlobal.getScore();
         //create background worker thread
-        gameLoopThread = new GameLoopThread(gameViewModel, displSize);
+        gameLoopThread = new GameLoopThread(gameViewModel, displSize, timerval, score);
         gameLoopThread.allowExecution(true);
         gameLoopThread.start();
         //TODO implement game pause/resume - score
@@ -130,6 +134,9 @@ public class GameActivity extends AppCompatActivity {
 
         //remember current entities
         gameGlobal.setMobs(new ArrayList<>(gameViewModel.getMobs().getValue()));
+        //remember parameters
+        gameGlobal.setScore(gameViewModel.getScore().getValue());
+        gameGlobal.setTimerval(gameViewModel.getTimeRemaining().getValue());
 
         //wait for the thread to terminate
         boolean retry = true;
@@ -258,7 +265,7 @@ public class GameActivity extends AppCompatActivity {
                     getResources().getString(R.string.pref_max_score),
                     String.valueOf(current_score)
             );
-            spEditor.commit();
+            spEditor.apply();
         }
     }
 }

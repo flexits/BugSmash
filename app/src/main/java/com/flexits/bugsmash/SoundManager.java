@@ -4,6 +4,8 @@ import android.content.Context;
 import android.media.AudioAttributes;
 import android.media.SoundPool;
 
+//Provides static methods to play predefined sounds in background.
+//Must be instantiated before usage and released to dispose of.
 public class SoundManager {
     final static int SOUND_STREAMS_MAX = 3;
 
@@ -33,6 +35,7 @@ public class SoundManager {
         if (soundPool == null) return;
         soundPool.release();
         soundPool = null;
+        instance = null;
     }
 
     private static void play(int id){
