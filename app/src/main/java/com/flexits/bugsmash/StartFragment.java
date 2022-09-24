@@ -17,7 +17,7 @@ import androidx.navigation.fragment.NavHostFragment;
 import com.flexits.bugsmash.databinding.FragmentFirstBinding;
 
 public class StartFragment extends Fragment {
-    private final int ROUND_DURATION = 10000;
+    private final int ROUND_DURATION = 120000;
 
     private FragmentFirstBinding binding;
     private SharedPreferences sPref;
@@ -60,6 +60,7 @@ public class StartFragment extends Fragment {
         gameGlobal.getMobs().clear();
     }
 
+    @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         binding.buttonPlay.setOnClickListener(view1 -> btnPlayPress(this.getView()));

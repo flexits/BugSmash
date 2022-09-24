@@ -90,7 +90,25 @@ public class GameActivity extends AppCompatActivity {
             @Override
             public void onChanged(Boolean flag) {
                 if (!Boolean.TRUE.equals(flag)) return;
-                updateMaxScore();
+                //update max score
+                int max_score = 0;
+                try {
+                    max_score = Integer.parseInt(
+                            sPref.getString(
+                                    getResources().getString(R.string.pref_max_score),
+                                    getResources().getString(R.string.pref_max_score_default))
+                    );
+                } catch (Exception e){ e.printStackTrace(); }
+                int current_score = gameViewModel.getScore().getValue();
+                if (current_score > max_score){
+                    SharedPreferences.Editor spEditor =  sPref.edit();
+                    spEditor.putString(
+                            getResources().getString(R.string.pref_max_score),
+                            String.valueOf(current_score)
+                    );
+                    spEditor.apply();
+                }
+                //the generated mobs collection isn't needed anymore
                 mobs.clear();
             }
         };
@@ -119,7 +137,6 @@ public class GameActivity extends AppCompatActivity {
         gameLoopThread = new GameLoopThread(gameViewModel, displSize, timerval, score);
         gameLoopThread.allowExecution(true);
         gameLoopThread.start();
-        //TODO implement game pause/resume - score
     }
 
     @Override
@@ -187,10 +204,10 @@ public class GameActivity extends AppCompatActivity {
         //random movement vectors, trying to avoid overlapping
         for (int counter=0, attempts=0; counter<quantity && attempts<PLACEMENT_ITERATIONS;){
             //pick random species
-            MobSpecies ms = species.get(generateRnd(0, species.size()-1));
+            MobSpecies ms = species.get(RandGenerator.generate(0, species.size()-1));
             Bitmap ms_bmp = ms.getBmp();
             //pick random screen side to spawn a mob on
-            int sideIndex = generateRnd(1, 4);
+            int sideIndex = RandGenerator.generate(1, 4);
             //generate coordinates and movement vectors' angles
             //(a mob never goes back; a movement vector is normal to the side a mob is spawned on)
             int x_max = viewSize.x - ms_bmp.getWidth();
@@ -200,25 +217,25 @@ public class GameActivity extends AppCompatActivity {
                 case 1:
                     //upper side
                     y = 0;
-                    x = generateRnd(0, x_max);
+                    x = RandGenerator.generate(0, x_max);
                     angleDeg = 180;
                     break;
                 case 2:
                     //right side
                     x = x_max;
-                    y = generateRnd(0, y_max);
+                    y = RandGenerator.generate(0, y_max);
                     angleDeg = 270;
                     break;
                 case 3:
                     //bottom side
                     y = y_max;
-                    x = generateRnd(0, x_max);
+                    x = RandGenerator.generate(0, x_max);
                     angleDeg = 360;
                     break;
                 case 4:
                     //left side
                     x = 0;
-                    y = generateRnd(0, y_max);
+                    y = RandGenerator.generate(0, y_max);
                     angleDeg = 90;
                     break;
             }
@@ -237,35 +254,10 @@ public class GameActivity extends AppCompatActivity {
                 continue;
             }
             //randomly deflect movement vector +- 45 degrees
-            angleDeg += (generateRnd(0, 90) - 45);
+            angleDeg += (RandGenerator.generate(0, 90) - 45);
             mobs.add(new Mob(x, y, angleDeg,true, ms));
             counter++;
             attempts = 0;
-        }
-    }
-
-    private int generateRnd(int min, int max){
-        if (min >= max) throw new IllegalArgumentException();
-        return min + (int)(Math.random() * ((max - min) + 1));
-    }
-
-    private void updateMaxScore(){
-        int max_score = 0;
-        try {
-            max_score = Integer.parseInt(
-                    sPref.getString(
-                            getResources().getString(R.string.pref_max_score),
-                            getResources().getString(R.string.pref_max_score_default))
-            );
-        } catch (Exception e){ e.printStackTrace(); }
-        int current_score = gameViewModel.getScore().getValue();
-        if (current_score > max_score){
-            SharedPreferences.Editor spEditor =  sPref.edit();
-            spEditor.putString(
-                    getResources().getString(R.string.pref_max_score),
-                    String.valueOf(current_score)
-            );
-            spEditor.apply();
         }
     }
 }

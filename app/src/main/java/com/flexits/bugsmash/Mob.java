@@ -51,6 +51,10 @@ public class Mob {
         this.vector = angle;
     }
 
+    public MobSpecies getSpecies() {
+        return species;
+    }
+
     public boolean isKilled() {
         return !isAlive;
     }
@@ -65,12 +69,14 @@ public class Mob {
         lifeRemainder = DYING_DURATION;
     }
 
-    public void DecreaseLife() {
-        if (--lifeRemainder < 0) isDying = false;
+    public void Revive(){
+        isAlive = true;
+        isDying = false;
+        lifeRemainder = -1;
     }
 
-    public MobSpecies getSpecies() {
-        return species;
+    public void DecreaseLife() {
+        if (--lifeRemainder < 0) isDying = false;
     }
 
     //check if an object with given starting point and dimensions overlaps with the mob

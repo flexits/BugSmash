@@ -8,12 +8,15 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.Typeface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 import androidx.lifecycle.MutableLiveData;
 
 import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 public class GameView extends SurfaceView {
     private DrawThread drawThread;
@@ -58,6 +61,7 @@ class DrawThread extends Thread{
     private final SurfaceHolder holder;
     private final GameViewModel gameViewModel;
     private final Bitmap mobDyingSprite;
+    private final String sgameOver;
 
     private boolean isRunning = false;
 
@@ -65,6 +69,7 @@ class DrawThread extends Thread{
         this.holder = holder;
         this.gameViewModel = gameViewModel;
         mobDyingSprite = BitmapFactory.decodeResource(resources, R.drawable.blood_50px);
+        sgameOver = resources.getString(R.string.gameover_title);
     }
 
     public void allowExecution(boolean isAllowed) {
@@ -99,16 +104,22 @@ class DrawThread extends Thread{
     private void performDraw(Canvas canvas) {
         canvas.drawColor(Color.YELLOW);
         MutableLiveData<List<Mob>> mobs = gameViewModel.getMobs();
-
         Boolean isOver = gameViewModel.getIsOver().getValue();
+        //paint used for OSD text (time and score)
+        Paint osdPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        osdPaint.setColor(Color.BLACK);
+        osdPaint.setTextSize(52);
+        osdPaint.setTypeface(Typeface.create(Typeface.MONOSPACE, Typeface.NORMAL));
+        //paint used for final title of the game
+        Paint fintitlPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        fintitlPaint.setColor(Color.RED);
+        fintitlPaint.setTextSize(56);
+        fintitlPaint.setTypeface(Typeface.create(Typeface.MONOSPACE, Typeface.NORMAL));
+        fintitlPaint.setTextAlign(Paint.Align.CENTER);
+
         if (isOver) {
             //game over
-            Paint p = new Paint();
-            p.setColor(Color.BLUE);
-            p.setStrokeWidth(20);
-            p.setTextSize(48);
-            //TODO gameover banner
-            canvas.drawText("Game over!", 100, 100, p);
+            canvas.drawText(sgameOver, canvas.getWidth()/2, canvas.getHeight()/2, fintitlPaint);
         } else {
             //game continues
             if (mobs == null) return;
@@ -128,20 +139,18 @@ class DrawThread extends Thread{
                     bmp = m.getSpecies().getBmp();
                 }
                 Matrix matrix = new Matrix();
-                matrix.postRotate(m.getVectAngle(), bmp.getWidth() / 2, bmp.getHeight() / 2);
+                matrix.postRotate(m.getVectAngle(), bmp.getWidth() / 2f, bmp.getHeight() / 2f);
                 matrix.postTranslate(m.getCoord().x, m.getCoord().y);
                 canvas.drawBitmap(bmp, matrix, null);
             }
-            String time = String.valueOf(gameViewModel.getTimeRemaining().getValue());
+            long timr = gameViewModel.getTimeRemaining().getValue();
+            String time = String.format(Locale.getDefault(), "%02d:%02d",
+                    TimeUnit.MILLISECONDS.toMinutes( timr),
+                    TimeUnit.MILLISECONDS.toSeconds(timr) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(timr)));
             String score = String.valueOf(gameViewModel.getScore().getValue());
-            //TODO: convert to mm:ss
-            Paint p = new Paint();
-            p.setColor(Color.BLUE);
-            p.setStrokeWidth(20);
-            p.setTextSize(48);
-            //TODO test position and style
-            canvas.drawText(time, 100, 100, p);
-            canvas.drawText(score, 300, 100, p);
+            //draw OSD time and score
+            canvas.drawText(time, 100, 100, osdPaint);
+            canvas.drawText(score, 800, 100, osdPaint);
         }
     }
 }
