@@ -6,8 +6,8 @@ import androidx.lifecycle.ViewModel;
 import java.util.ArrayList;
 import java.util.List;
 
-//ViewModel provides an observable data storage for the game content, updatable by the game loop,
-//and asynchronous access to the data is provided by the MutableLiveData objects
+//ViewModel provides a data storage for the game content, updatable by the game loop,
+//and an access to the data is provided by the observable MutableLiveData objects
 
 public class GameViewModel extends ViewModel {
     private MutableLiveData<List<Mob>>mobs;     //list of mobs

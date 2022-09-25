@@ -10,6 +10,6 @@ public class RandGenerator {
 
     //toss coin unfair
     public static boolean tosscoin(){
-        return (generate(0, 100000) < 10) ? true : false;
+        return (generate(0, 10000) < 10) ? true : false;
     }
 }
