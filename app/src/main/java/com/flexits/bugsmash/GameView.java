@@ -16,6 +16,7 @@ import androidx.lifecycle.MutableLiveData;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 public class GameView extends SurfaceView {
@@ -58,6 +59,8 @@ public class GameView extends SurfaceView {
 }
 
 class DrawThread extends Thread{
+    private final int UI_UPDATE_INTERVAL = 15;  //pause duration between UI updates, milliseconds
+
     private final SurfaceHolder holder;
     private final GameViewModel gameViewModel;
     private final Bitmap mobDyingSprite;
@@ -88,8 +91,13 @@ class DrawThread extends Thread{
                 synchronized (holder) {
                     //update the screen upon lock acquisition
                     if (canvas != null) {
-                        //draw the game objects
+                        //draw the game objects and make a pause to limit FPS
                         performDraw(canvas);
+                        try {
+                            TimeUnit.MILLISECONDS.sleep(UI_UPDATE_INTERVAL);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
             } finally {
@@ -117,13 +125,13 @@ class DrawThread extends Thread{
         fintitlPaint.setTypeface(Typeface.create(Typeface.MONOSPACE, Typeface.NORMAL));
         fintitlPaint.setTextAlign(Paint.Align.CENTER);
 
-        if (isOver) {
+        if (Boolean.TRUE.equals(isOver)) {
             //game over
             canvas.drawText(sgameOver, canvas.getWidth()/2, canvas.getHeight()/2, fintitlPaint);
         } else {
             //game continues
             if (mobs == null) return;
-            for (Mob m : mobs.getValue()) {
+            for (Mob m : Objects.requireNonNull(mobs.getValue())) {
                 //for each mob get its species picture if it's alive;
                 //or get a blood stain picture if it's dying;
                 //or skip the mob if it's already dead

@@ -11,7 +11,7 @@ import android.graphics.PointF;
 // -> dead (isAlive==false & isDying==false)
 
 public class Mob {
-    private final int DYING_DURATION = 5;
+    private final int DYING_DURATION = 2;
 
     private PointF coord;
     private int vector;

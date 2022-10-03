@@ -6,6 +6,7 @@ import android.os.CountDownTimer;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 //all calculations of the game world are made here and saved into the LiveData object
 public class GameLoopThread extends Thread implements Runnable{
@@ -150,7 +151,7 @@ public class GameLoopThread extends Thread implements Runnable{
 
             //sleep to limit FPS and system load
             try {
-                Thread.sleep(THREAD_ITERATIONS_INTERVAL);
+                TimeUnit.MILLISECONDS.sleep(THREAD_ITERATIONS_INTERVAL);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
